@@ -10,11 +10,11 @@ A mobile app to manage daily-wage workers: attendance, salary, and advance salar
 
 ## Problem
 
-Worker headcount for daily-wage labor fluctuates day to day (typical of this kind of work — up to ~70 workers at a time), and there is no structured, backfillable, per-worker record of attendance, salary earned, and advances given. The admin needs a single place to record each day's attendance per worker and see auto-calculated salary/advance totals, without needing internet access or a server.
+Worker headcount for daily-wage labor fluctuates day to day (typical of this kind of work — up to ~70 workers at a time), and there is no structured, backfillable, per-worker record of attendance, salary earned, and advances given. The admin needs a single place to record each day's attendance per worker and see auto-calculated salary/advance totals — and needs to be able to do this from any device, not just one fixed phone.
 
 ## Purpose
 
-Build one offline-first mobile app where the admin can, per worker: mark daily attendance (Present/Half/Absent) on any date past or present, log dated advance-salary payments, and see auto-calculated salary and advance totals — for a fluctuating roster of up to ~70 daily-wage workers.
+Build one web app, accessible from any device, where the admin can, per worker: mark daily attendance (Present/Half/Absent) on any date past or present, log dated advance-salary payments, and see auto-calculated salary and advance totals — for a fluctuating roster of up to ~70 daily-wage workers.
 
 ## Goals
 
@@ -22,15 +22,13 @@ Build one offline-first mobile app where the admin can, per worker: mark daily a
 - Attendance editable for any date (not just "today") so the admin can backfill or correct records.
 - Advance salary logged as individual dated entries (date + amount), building a full history per worker — not a single manually-edited balance.
 - Auto-calculated salary and advance totals (never manually entered): total earned with and without advances deducted, running-month advance total, and whole-year advance total plus remaining amount owed.
-- Fully offline: works with no internet connection, data stored locally on the phone.
-- Installable as a mobile web app (PWA).
+- Accessible from any device — one central copy of the data, not tied to a single phone (see `DECISIONS.md`'s production stack decision).
 - A dedicated login screen with admin-set credentials.
 
 ## Non-Goals
 
 - No worker-facing access — this is a single-user (admin-only) application. Workers do not have accounts or access.
-- No server or hosting — this is not a client-server product; there is no backend to build.
-- No backup/export/import feature for now — deferred, to be decided later (see `DECISIONS.md`).
+- No multi-admin/multi-user support and no OAuth/social login — a single admin account, database-backed sessions only (see `DECISIONS.md`).
 - Workers are never deleted from the system — "removing" a worker means marking them Inactive, not erasing their record.
 
 ## Target Users
@@ -50,12 +48,12 @@ Build one offline-first mobile app where the admin can, per worker: mark daily a
 
 ## Current Status
 
-Discussion/specification phase. No code has been written, no tech stack chosen, and no project scaffolding exists. See `PHASES.md` and `TASKS.md`.
+Discussion/specification phase. No code has been written and no project scaffolding exists yet, but the production tech stack has been chosen (see `DECISIONS.md`, `ARCHITECTURE.md`). See `PHASES.md` and `TASKS.md`.
 
 ## Constraints
 
-- Must work fully offline — no internet dependency for core functionality.
-- Data stored locally on the phone — no server/hosting.
+- Requires internet connectivity to reach the backend — this is a hosted client-server app, not an offline-only tool.
+- One central database is the single source of truth, accessible from any device the admin logs in from.
 - Max ~70 workers at a time.
 - Single admin user only.
 - UI language: English.

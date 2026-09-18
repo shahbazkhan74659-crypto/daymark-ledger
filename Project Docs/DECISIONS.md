@@ -11,14 +11,19 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: "Daymark" was the strongest single convergence point across all three models' independent suggestions and matched the brief exactly (short, metaphorical, evokes daily marking without naming attendance directly). "Ledger" was added to acknowledge that the app is equally about salary/advance record-keeping, not attendance alone — owner's explicit choice to combine the two rather than pick one standalone word.
 - Consequences: Any future branding, PWA manifest `name`/`short_name`, package identifiers, or app-store listing should use "Daymark Ledger" (or a "Daymark" short form) rather than a generic/placeholder name.
 
-## Decision: Offline-first mobile PWA, no server/hosting
+## Decision: Production stack — React/Vite frontend, Node/Express REST API backend, PostgreSQL via Prisma, database-backed sessions
 
 - Status: Accepted
-- Date: 2026-09-17
-- Context: The app needed a platform approach — a hosted client-server product, a native app, or a fully local/offline tool — chosen before any implementation began.
-- Decision: Build an installable mobile web app (PWA). It must work fully offline; all data is stored locally on the phone. No server or hosting is required or planned.
-- Reasoning: Owner's explicit direction; not otherwise elaborated in the discussion record.
-- Consequences: No backend, API, or hosting decisions are needed. Local-storage mechanism and PWA tooling remain open (see `TASKS.md`). Backup/export has no server-side fallback to rely on — see the dedicated decision below.
+- Date: 2026-09-18
+- Context: The app was originally planned as an offline-only PWA with local on-device storage (see the now-removed "Offline-first mobile PWA, no server/hosting" decision). The owner's father — the actual admin user — wants to be able to open the app on any device, which local-only storage cannot support: it needs one central, always-current copy of the data that every device reads from. This requires a real backend and database rather than local storage.
+- Decision:
+  - **Frontend:** React + Vite + TypeScript + Tailwind CSS.
+  - **Backend:** Node.js + Express + TypeScript, exposing a REST API. Next.js is explicitly **not** part of the default stack — it may be introduced later only if a specific, concrete need arises that Express can't reasonably satisfy; until then, treat the backend as plain Express.
+  - **Database:** PostgreSQL 18.
+  - **ORM:** Prisma.
+  - **Auth:** Database-backed sessions — the session ID is hashed before storage, and the admin's account password is hashed with bcrypt. No OAuth/social login, no multi-user roles — this remains a single-admin account.
+- Reasoning: Multi-device access requires a central source of truth, which rules out local-only storage. Node/Express/TypeScript keeps one language across the whole stack (no Python/Django context-switch). PostgreSQL fits the relational Worker → Attendance → Advance data shape and is well-supported on every PaaS/managed-DB provider. Prisma gives type-safe queries matching the TypeScript backend. Database-backed sessions (over stateless JWTs) were chosen so sessions can be revoked/invalidated server-side at any time — appropriate for a single admin account where that control matters more than statelessness.
+- Consequences: This supersedes the original offline-first/local-storage/no-server plan in full — the app is now a normal client-server web app requiring hosting and internet connectivity to function (see `TASKS.md` for the still-open PaaS hosting choice). `PROJECT.md`'s Non-Goals/Constraints and `ARCHITECTURE.md` have been updated to match. Prior discussion items premised on local-only storage (e.g. the earlier backup/export-mechanism deferral, which existed specifically to address local-device data loss) no longer apply in their original form, since the database itself is now the durable, device-independent copy of the data.
 
 ## Decision: Dedicated login screen with admin-set credentials
 
@@ -73,15 +78,6 @@ These decisions were made during a prior discussion, before any code was written
 - Decision: Workers are never deleted. A worker who stops working is marked Inactive. If they rejoin later — even months later — they are reactivated and keep all historical attendance/salary data intact.
 - Reasoning: Owner's explicit direction; not otherwise elaborated.
 - Consequences: Any worker-record deletion feature is out of scope. The data model must support an Active/Inactive status field and must not cascade-delete or orphan a worker's attendance/advance history on deactivation.
-
-## Decision: Backup/export mechanism deferred
-
-- Status: Deferred
-- Date: 2026-09-17
-- Context: An offline, local-storage-only app has no server-side copy of its data, which raises the question of how the admin would recover data if the device is lost, reset, or replaced.
-- Decision: No backup/export/import feature is planned for now. The mechanism (manual export/import file vs. none at all) is explicitly left to be decided later.
-- Reasoning: Owner's explicit direction; not otherwise elaborated.
-- Consequences: Data-loss risk on device loss/reset is currently unmitigated by design, pending a future decision. Revisit this before considering the app production-ready for real day-to-day use — see `TASKS.md`.
 
 ## Decision: UI language — English
 
