@@ -45,10 +45,13 @@ Build one web app, accessible from any device, where the admin can, per worker: 
 - **Salary configuration:** a per-day salary rate set individually per worker; half-day pay is always exactly 0.5 × the per-day rate (flat rule for all workers).
 - **Salary & advance calculations (auto-calculated):** total earned before/after advance deduction for a period, running-month advance total, and whole-year advance total plus remaining amount owed.
 - **Login:** a dedicated login screen (not just a PIN), with credentials set by the admin, presumably during first-time setup.
+- **Quick-actions menu:** a floating circular menu button (bottom-right of the screen) that opens Create New Employee, Manage Employees, Reporting, and Settings.
+- **Manage Employees:** an admin flow, separate from the day-to-day attendance view, for worker housekeeping — listing all workers, toggling Active/Inactive, editing personal/employment info, and managing document uploads per worker.
+- **Create New Employee:** a form to add a new worker (full name, designation, contact, joining date, per-day rate).
 
 ## Current Status
 
-Discussion/specification phase. No code has been written and no project scaffolding exists yet, but the production tech stack has been chosen (see `DECISIONS.md`, `ARCHITECTURE.md`). See `PHASES.md` and `TASKS.md`.
+Discussion/specification phase. No production code has been written and no project scaffolding exists yet, but the production tech stack has been chosen (see `DECISIONS.md`, `ARCHITECTURE.md`). An interactive, non-functional UI prototype (mobile view, built as a Claude Artifact) exists to validate the worker-list/attendance/manage-employee flows visually before implementation — see `ARCHITECTURE.md`'s Prototype note and `TASKS.md`. See `PHASES.md` and `TASKS.md` for what's next.
 
 ## Constraints
 

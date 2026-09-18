@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daymark Ledger — Prototype</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;-webkit-font-smoothing:antialiased;}
+  *{box-sizing:border-box;}
+  button{font-family:inherit;cursor:pointer;}
+  input{font-family:inherit;}
+  a{color:inherit;text-decoration:none;}
+  ::-webkit-scrollbar{width:0;height:0;}
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F5F5F4; display: flex; flex-direction: column; overflow: hidden; position: relative; font-family: 'Manrope', -apple-system, 'Segoe UI', sans-serif; color: #1C1917;">
+
+  <!-- LIST VIEW -->
+  <sc-if value="{{isListView}}" hint-placeholder-val="{{true}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: #0F766E; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 16px; font-weight: 800; line-height: 1.2;">Daymark Ledger</div>
+        <div style="font-size: 11px; font-weight: 500; color: #78716C; line-height: 1.2;">{{todayLabel}}</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="display: flex; flex-direction: column; align-items: flex-end;">
+        <div style="font-size: 12px; font-weight: 700; line-height: 1.2;">Admin</div>
+        <div style="font-size: 10px; font-weight: 500; color: #A8A29E; line-height: 1.2;">Signed in</div>
+      </div>
+      <div style="width: 32px; height: 32px; border-radius: 999px; background: #CCFBF1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #0F766E; flex-shrink: 0;">A</div>
+    </div>
+  </div>
+
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 24px 16px;">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A8A29E; margin-bottom: 10px;">{{workerCountLabel}}</div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{listItems}}" as="w" hint-placeholder-count="6">
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 1px 2px rgba(28,25,23,0.06); opacity: {{w.rowOpacity}};">
+        <button onClick="{{w.open}}" style="background: none; border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 10px; text-align: left; flex: 1 1 auto; min-width: 0;">
+          <div style="width: 38px; height: 38px; border-radius: 999px; background: {{w.avatarBg}}; color: {{w.avatarFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">{{w.initials}}</div>
+          <div style="display: flex; flex-direction: column; min-width: 0;">
+            <div style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{w.name}}</div>
+            <sc-if value="{{w.inactive}}" hint-placeholder-val="{{false}}">
+              <div style="font-size: 10px; font-weight: 700; color: #A8A29E;">Inactive</div>
+            </sc-if>
+          </div>
+        </button>
+        <div style="display: flex; gap: 5px; flex-shrink: 0;">
+          <sc-for list="{{w.pills}}" as="p" hint-placeholder-count="3">
+          <button onClick="{{p.set}}" style="width: 28px; height: 28px; border-radius: 8px; background: {{p.bg}}; color: {{p.fg}}; border: 1.5px solid {{p.border}}; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0;">{{p.code}}</button>
+          </sc-for>
+        </div>
+      </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- FAB MENU BACKDROP -->
+  <sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{closeMenu}}" style="position: absolute; inset: 0; z-index: 14;"></div>
+  <div style="position: absolute; right: 20px; bottom: 92px; z-index: 16; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+    <button onClick="{{menuCreate}}" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: none; border-radius: 12px; padding: 11px 16px; box-shadow: 0 6px 16px rgba(28,25,23,0.18); font-size: 13px; font-weight: 700; color: #1C1917; white-space: nowrap;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#0F766E" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="#0F766E" stroke-width="2" stroke-linecap="round"/></svg>
+      Create New Employee
+    </button>
+    <button onClick="{{menuReporting}}" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: none; border-radius: 12px; padding: 11px 16px; box-shadow: 0 6px 16px rgba(28,25,23,0.18); font-size: 13px; font-weight: 700; color: #1C1917; white-space: nowrap;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-6" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Reporting
+    </button>
+    <button onClick="{{menuManage}}" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: none; border-radius: 12px; padding: 11px 16px; box-shadow: 0 6px 16px rgba(28,25,23,0.18); font-size: 13px; font-weight: 700; color: #1C1917; white-space: nowrap;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="#0F766E" stroke-width="2"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5M16 8.5a2.5 2.5 0 100-5M21 20c0-2.3-1.7-4.1-4-4.7" stroke="#0F766E" stroke-width="2" stroke-linecap="round"/></svg>
+      Manage Employees
+    </button>
+    <button onClick="{{menuSettings}}" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: none; border-radius: 12px; padding: 11px 16px; box-shadow: 0 6px 16px rgba(28,25,23,0.18); font-size: 13px; font-weight: 700; color: #1C1917; white-space: nowrap;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#0F766E" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#0F766E" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Settings
+    </button>
+  </div>
+  </sc-if>
+
+  <button onClick="{{toggleMenu}}" aria-label="Open quick actions menu" style="position: absolute; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 999px; background: #0F766E; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(15,118,110,0.45); z-index: 16;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="transform: rotate({{fabRotate}}); transition: transform 0.15s ease;"><path d="M12 5v14M5 12h14" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/></svg>
+  </button>
+  </sc-if>
+
+  <!-- DETAIL VIEW (attendance) -->
+  <sc-if value="{{isDetailView}}" hint-placeholder-val="{{false}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+    <button onClick="{{onBack}}" aria-label="Back to worker list" style="width: 34px; height: 34px; border-radius: 999px; background: #F5F5F4; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="width: 38px; height: 38px; border-radius: 999px; background: {{detail.avatarBg}}; color: {{detail.avatarFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">{{detail.initials}}</div>
+    <div style="display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0;">
+      <div style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{detail.name}}</div>
+      <div style="font-size: 11px; font-weight: 500; color: #78716C;">{{detail.designation}}</div>
+    </div>
+    <button onClick="{{detail.onToggleActive}}" style="border: none; border-radius: 999px; padding: 5px 10px; font-size: 10px; font-weight: 800; background: {{detail.activeBg}}; color: {{detail.activeFg}}; flex-shrink: 0;">{{detail.activeLabel}}</button>
+  </div>
+
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 28px 16px; display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E; margin-bottom: 12px;">Personal &amp; Employment</div>
+      <div style="display: flex; flex-direction: column; gap: 9px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: #78716C;">Contact</span>
+          <span style="font-weight: 700;">{{detail.phone}}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: #78716C;">Joined</span>
+          <span style="font-weight: 700;">{{detail.joinDate}}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: #78716C;">Designation</span>
+          <span style="font-weight: 700;">{{detail.designation}}</span>
+        </div>
+      </div>
+      <div style="height: 1px; background: #F0EFED; margin: 12px 0;"></div>
+      <div style="font-size: 11px; font-weight: 700; color: #A8A29E; margin-bottom: 8px;">Documents</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <sc-for list="{{detail.docsChips}}" as="d" hint-placeholder-count="1">
+        <div style="display: flex; align-items: center; gap: 5px; background: #F5F5F4; border-radius: 999px; padding: 5px 10px 5px 8px; font-size: 11px; font-weight: 600; color: #44403C;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#78716C" stroke-width="2"/></svg>
+          {{d.name}}
+        </div>
+        </sc-for>
+        <sc-if value="{{detail.docsEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 12px; font-style: italic; color: #A8A29E;">No documents uploaded</div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <button onClick="{{detail.onPrev}}" aria-label="Previous month" style="width: 28px; height: 28px; border-radius: 8px; border: 1px solid #E7E5E4; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#57534E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div style="font-size: 13px; font-weight: 800;">{{detail.monthLabel}}</div>
+        <button onClick="{{detail.onNext}}" aria-label="Next month" style="width: 28px; height: 28px; border-radius: 8px; border: 1px solid #E7E5E4; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#57534E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px;">
+        <sc-for list="{{detail.weekLabels}}" as="wl" hint-placeholder-count="7">
+        <div style="text-align: center; font-size: 10px; font-weight: 700; color: #A8A29E;">{{wl.t}}</div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 38px; gap: 4px;">
+        <sc-for list="{{detail.cells}}" as="c" hint-placeholder-count="35">
+        <button onClick="{{c.pick}}" style="width: 100%; height: 100%; border-radius: 8px; background: {{c.bg}}; color: {{c.fg}}; border: {{c.border}}; font-size: 12px; font-weight: 700; padding: 0; visibility: {{c.vis}};">{{c.day}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: space-around; margin-top: 14px; padding-top: 12px; border-top: 1px solid #F0EFED;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #86EFAC;"></div>
+          <span style="font-size: 12px; font-weight: 700;">{{detail.presentCount}}</span>
+          <span style="font-size: 11px; color: #A8A29E;">Present</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #FDE68A;"></div>
+          <span style="font-size: 12px; font-weight: 700;">{{detail.halfCount}}</span>
+          <span style="font-size: 11px; color: #A8A29E;">Half</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #FCA5A5;"></div>
+          <span style="font-size: 12px; font-weight: 700;">{{detail.absentCount}}</span>
+          <span style="font-size: 11px; color: #A8A29E;">Absent</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E; margin-bottom: 12px;">Salary Configuration</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <span style="font-size: 13px; color: #57534E;">Per-day rate</span>
+        <div style="display: flex; align-items: center; gap: 4px; background: #F5F5F4; border-radius: 10px; padding: 6px 10px;">
+          <span style="font-size: 13px; font-weight: 700; color: #78716C;">₹</span>
+          <input type="number" value="{{detail.rate}}" onChange="{{detail.onRateChange}}" style="width: 64px; border: none; background: none; font-size: 13px; font-weight: 800; color: #1C1917; text-align: right; outline: none;">
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 13px; color: #57534E;">Half-day pay <span style="color: #A8A29E;">(0.5×)</span></span>
+        <span style="font-size: 13px; font-weight: 700;">{{detail.halfPayLabel}}</span>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E; margin-bottom: 12px;">Earnings &amp; Advances</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div style="background: #F5F5F4; border-radius: 12px; padding: 12px;">
+          <div style="font-size: 10px; font-weight: 700; color: #A8A29E; margin-bottom: 4px;">TOTAL EARNED (GROSS)</div>
+          <div style="font-size: 16px; font-weight: 800;">{{detail.grossLabel}}</div>
+        </div>
+        <div style="background: #F5F5F4; border-radius: 12px; padding: 12px;">
+          <div style="font-size: 10px; font-weight: 700; color: #A8A29E; margin-bottom: 4px;">TOTAL EARNED (NET)</div>
+          <div style="font-size: 16px; font-weight: 800;">{{detail.netLabel}}</div>
+        </div>
+        <div style="background: #F5F5F4; border-radius: 12px; padding: 12px;">
+          <div style="font-size: 10px; font-weight: 700; color: #A8A29E; margin-bottom: 4px;">THIS MONTH ADVANCE</div>
+          <div style="font-size: 16px; font-weight: 800;">{{detail.advMonthLabel}}</div>
+        </div>
+        <div style="background: #F5F5F4; border-radius: 12px; padding: 12px;">
+          <div style="font-size: 10px; font-weight: 700; color: #A8A29E; margin-bottom: 4px;">THIS YEAR ADVANCE</div>
+          <div style="font-size: 16px; font-weight: 800;">{{detail.advYearLabel}}</div>
+        </div>
+      </div>
+      <div style="background: #CCFBF1; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 11px; font-weight: 700; color: #0F766E;">REMAINING OWED</div>
+        <div style="font-size: 17px; font-weight: 800; color: #0F766E;">{{detail.remainingLabel}}</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E; margin-bottom: 10px;">Advance History</div>
+      <sc-for list="{{detail.advRows}}" as="r" hint-placeholder-count="2">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F0EFED;">
+        <span style="font-size: 13px; color: #57534E;">{{r.dateLabel}}</span>
+        <span style="font-size: 13px; font-weight: 800;">{{r.amountLabel}}</span>
+      </div>
+      </sc-for>
+      <sc-if value="{{detail.advEmpty}}" hint-placeholder-val="{{false}}">
+        <div style="font-size: 12px; font-style: italic; color: #A8A29E; text-align: center; padding: 6px 0;">No advances recorded yet</div>
+      </sc-if>
+    </div>
+
+  </div>
+  </sc-if>
+
+  <!-- MANAGE EMPLOYEES: LIST -->
+  <sc-if value="{{isManageListView}}" hint-placeholder-val="{{false}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+    <button onClick="{{onBackManageList}}" aria-label="Back" style="width: 34px; height: 34px; border-radius: 999px; background: #F5F5F4; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="font-size: 15px; font-weight: 800;">Manage Employees</div>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 24px 16px;">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A8A29E; margin-bottom: 10px;">{{workerCountLabel}}</div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{manageWorkers}}" as="m" hint-placeholder-count="6">
+      <button onClick="{{m.open}}" style="background: #FFFFFF; border: none; border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 2px rgba(28,25,23,0.06); text-align: left; width: 100%;">
+        <div style="width: 38px; height: 38px; border-radius: 999px; background: {{m.avatarBg}}; color: {{m.avatarFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">{{m.initials}}</div>
+        <div style="display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0;">
+          <div style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.name}}</div>
+          <div style="font-size: 11px; font-weight: 500; color: #78716C;">{{m.designation}}</div>
+        </div>
+        <div style="border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 800; background: {{m.activeBg}}; color: {{m.activeFg}}; flex-shrink: 0;">{{m.activeLabel}}</div>
+      </button>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- MANAGE EMPLOYEES: EDIT -->
+  <sc-if value="{{isManageEditView}}" hint-placeholder-val="{{false}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+    <button onClick="{{onBackManageEdit}}" aria-label="Back to manage employees" style="width: 34px; height: 34px; border-radius: 999px; background: #F5F5F4; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="width: 38px; height: 38px; border-radius: 999px; background: {{manageDetail.avatarBg}}; color: {{manageDetail.avatarFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">{{manageDetail.initials}}</div>
+    <div style="font-size: 14px; font-weight: 700; flex: 1 1 auto;">{{manageDetail.name}}</div>
+    <button onClick="{{manageDetail.onToggleActive}}" style="border: none; border-radius: 999px; padding: 5px 10px; font-size: 10px; font-weight: 800; background: {{manageDetail.activeBg}}; color: {{manageDetail.activeFg}}; flex-shrink: 0;">{{manageDetail.activeLabel}}</button>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 28px 16px; display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06); display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E;">Personal Information</div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Full name</label>
+        <input type="text" value="{{manageDetail.nameVal}}" onChange="{{manageDetail.onNameChange}}" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Designation</label>
+        <input type="text" value="{{manageDetail.designationVal}}" onChange="{{manageDetail.onDesignationChange}}" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Contact</label>
+        <input type="text" value="{{manageDetail.phoneVal}}" onChange="{{manageDetail.onPhoneChange}}" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Joining date</label>
+        <input type="text" value="{{manageDetail.joinDateVal}}" onChange="{{manageDetail.onJoinDateChange}}" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06);">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #A8A29E; margin-bottom: 12px;">Documents</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+        <sc-for list="{{manageDetail.docsChips}}" as="d" hint-placeholder-count="1">
+        <div style="display: flex; align-items: center; gap: 8px; background: #F5F5F4; border-radius: 10px; padding: 9px 10px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#78716C" stroke-width="2"/></svg>
+          <span style="font-size: 12px; font-weight: 600; color: #44403C; flex: 1 1 auto;">{{d.name}}</span>
+          <button onClick="{{d.remove}}" aria-label="Remove document" style="width: 22px; height: 22px; border-radius: 999px; border: none; background: #E7E5E4; display: flex; align-items: center; justify-content: center; padding: 0;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#57534E" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        </sc-for>
+        <sc-if value="{{manageDetail.docsEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 12px; font-style: italic; color: #A8A29E; padding: 4px 0;">No documents uploaded</div>
+        </sc-if>
+      </div>
+      <button onClick="{{manageDetail.onAddDoc}}" style="width: 100%; border: 1.5px dashed #D6D3D1; border-radius: 10px; background: none; padding: 10px; font-size: 12px; font-weight: 700; color: #0F766E; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#0F766E" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Add document
+      </button>
+    </div>
+
+  </div>
+  </sc-if>
+
+  <!-- CREATE NEW EMPLOYEE -->
+  <sc-if value="{{isCreateView}}" hint-placeholder-val="{{false}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+    <button onClick="{{createForm.onCancel}}" aria-label="Cancel" style="width: 34px; height: 34px; border-radius: 999px; background: #F5F5F4; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="font-size: 15px; font-weight: 800;">New Employee</div>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(28,25,23,0.06); display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Full name <span style="color: #DC2626;">*</span></label>
+        <input type="text" value="{{createForm.name}}" onChange="{{createForm.onNameChange}}" placeholder="e.g. Ramesh Yadav" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Designation</label>
+        <input type="text" value="{{createForm.designation}}" onChange="{{createForm.onDesignationChange}}" placeholder="e.g. Mason" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Contact</label>
+        <input type="text" value="{{createForm.phone}}" onChange="{{createForm.onPhoneChange}}" placeholder="+91 90000 00000" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Joining date</label>
+        <input type="text" value="{{createForm.joinDate}}" onChange="{{createForm.onJoinDateChange}}" placeholder="e.g. 18 Sep 2026" style="background: #F5F5F4; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: #78716C;">Per-day rate</label>
+        <div style="display: flex; align-items: center; gap: 4px; background: #F5F5F4; border-radius: 10px; padding: 10px 12px;">
+          <span style="font-size: 13px; font-weight: 700; color: #78716C;">₹</span>
+          <input type="number" value="{{createForm.rate}}" onChange="{{createForm.onRateChange}}" placeholder="0" style="flex: 1 1 auto; border: none; background: none; font-size: 13px; font-weight: 600; color: #1C1917; outline: none;">
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button onClick="{{createForm.onCancel}}" style="flex: 1 1 0; height: 46px; border-radius: 10px; border: 1.5px solid #E7E5E4; background: #FFFFFF; color: #44403C; font-size: 13px; font-weight: 800;">Cancel</button>
+      <button onClick="{{createForm.onSave}}" style="flex: 1 1 0; height: 46px; border-radius: 10px; border: none; background: {{createForm.saveBg}}; color: {{createForm.saveFg}}; font-size: 13px; font-weight: 800;">Save Employee</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- PLACEHOLDER (Reporting / Settings) -->
+  <sc-if value="{{isPlaceholderView}}" hint-placeholder-val="{{false}}">
+  <div style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E7E5E4; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+    <button onClick="{{onBackPlaceholder}}" aria-label="Back" style="width: 34px; height: 34px; border-radius: 999px; background: #F5F5F4; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="font-size: 15px; font-weight: 800;">{{placeholderTitle}}</div>
+  </div>
+  <div style="flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px;">
+    <div style="width: 56px; height: 56px; border-radius: 999px; background: #F0EFED; display: flex; align-items: center; justify-content: center;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16h.01" stroke="#A8A29E" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#A8A29E" stroke-width="2"/></svg>
+    </div>
+    <div style="font-size: 14px; font-weight: 800; text-align: center;">Coming soon</div>
+    <div style="font-size: 12px; color: #78716C; text-align: center; max-width: 240px;">{{placeholderTitle}} hasn't been designed yet — it's next on the list.</div>
+  </div>
+  </sc-if>
+
+  <!-- DAY POPUP -->
+  <sc-if value="{{popupOpen}}" hint-placeholder-val="{{false}}">
+  <div style="position: absolute; inset: 0; background: rgba(28,25,23,0.5); display: flex; align-items: flex-end; z-index: 20;">
+    <div style="width: 100%; background: #FFFFFF; border-radius: 20px 20px 0 0; padding: 18px 18px 22px 18px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-size: 15px; font-weight: 800;">{{popupDateLabel}}</div>
+      <div style="display: flex; gap: 8px;">
+        <sc-for list="{{popupStatusOptions}}" as="o" hint-placeholder-count="3">
+        <button onClick="{{o.pick}}" style="flex: 1 1 0; height: 46px; border-radius: 10px; border: 2px solid {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font-size: 12px; font-weight: 800;">{{o.label}}</button>
+        </sc-for>
+      </div>
+      <div style="height: 1px; background: #F0EFED;"></div>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #44403C;">
+        <input type="checkbox" checked="{{popupAdvOn}}" onChange="{{onToggleAdv}}" style="width: 18px; height: 18px; accent-color: #0F766E;">
+        Advance salary given on this day
+      </label>
+      <sc-if value="{{popupAdvOn}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; align-items: center; gap: 4px; background: #F5F5F4; border-radius: 10px; padding: 10px 12px;">
+        <span style="font-size: 15px; font-weight: 700; color: #78716C;">₹</span>
+        <input type="number" value="{{popupAdvAmt}}" onChange="{{onAmtChange}}" placeholder="0" style="flex: 1 1 auto; border: none; background: none; font-size: 15px; font-weight: 800; color: #1C1917; outline: none;">
+      </div>
+      </sc-if>
+      <div style="display: flex; gap: 10px; margin-top: 4px;">
+        <button onClick="{{onCancelPopup}}" style="flex: 1 1 0; height: 46px; border-radius: 10px; border: 1.5px solid #E7E5E4; background: #FFFFFF; color: #44403C; font-size: 13px; font-weight: 800;">Cancel</button>
+        <button onClick="{{onSavePopup}}" style="flex: 1 1 0; height: 46px; border-radius: 10px; border: none; background: #0F766E; color: #FFFFFF; font-size: 13px; font-weight: 800;">Save</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.TODAY = { y: 2026, m: 9, d: 18 };
+    this.STATUS = {
+      P: { bg: '#86EFAC', fg: '#14532D', label: 'Present' },
+      H: { bg: '#FDE68A', fg: '#78350F', label: 'Half day' },
+      A: { bg: '#FCA5A5', fg: '#7F1D1D', label: 'Absent' }
+    };
+    this.AVATAR = [
+      { bg: '#C7D2FE', fg: '#312E81' },
+      { bg: '#BAE6FD', fg: '#0C4A6E' },
+      { bg: '#FBCFE8', fg: '#831843' },
+      { bg: '#DDD6FE', fg: '#4C1D95' },
+      { bg: '#A5F3FC', fg: '#164E63' },
+      { bg: '#E2E8F0', fg: '#334155' }
+    ];
+    this.MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    this.state = {
+      view: 'list',
+      selectedId: null,
+      calYear: 2026,
+      calMonth: 9,
+      popupOpen: false,
+      popupKey: '',
+      popupStatus: 'P',
+      popupAdvOn: false,
+      popupAdvAmt: '',
+      menuOpen: false,
+      placeholderTitle: '',
+      formName: '',
+      formDesignation: '',
+      formPhone: '',
+      formJoinDate: '',
+      formRate: '',
+      workers: this.initialWorkers()
+    };
+  }
+
+  initialWorkers() {
+    const base = [
+      { id: 1, name: 'Ramesh Yadav', designation: 'Mason', phone: '+91 98220 11234', joinDate: '12 Mar 2024', active: true, rate: 650, docs: ['Aadhaar Card.pdf', 'Photo.jpg'], advances: [{ date: '2026-8-22', amount: 1200 }, { date: '2026-9-10', amount: 800 }] },
+      { id: 2, name: 'Suresh Kumar', designation: 'Helper', phone: '+91 97410 55892', joinDate: '03 Jun 2025', active: true, rate: 500, docs: [], advances: [{ date: '2026-9-3', amount: 500 }] },
+      { id: 3, name: 'Anita Devi', designation: 'Painter', phone: '+91 90123 44567', joinDate: '19 Jan 2023', active: true, rate: 550, docs: ['ID Proof.pdf'], advances: [{ date: '2026-8-15', amount: 1000 }, { date: '2026-9-14', amount: 600 }] },
+      { id: 4, name: 'Vikram Singh', designation: 'Electrician', phone: '+91 99887 76543', joinDate: '27 Sep 2022', active: true, rate: 750, docs: ['License.pdf', 'Photo.jpg'], advances: [{ date: '2026-9-1', amount: 1500 }] },
+      { id: 5, name: 'Pooja Sharma', designation: 'Helper', phone: '+91 93456 12309', joinDate: '08 Aug 2025', active: true, rate: 500, docs: [], advances: [] },
+      { id: 6, name: 'Manoj Verma', designation: 'Carpenter', phone: '+91 96543 21098', joinDate: '14 Feb 2024', active: true, rate: 700, docs: ['Aadhaar Card.pdf'], advances: [{ date: '2026-8-5', amount: 2000 }, { date: '2026-9-16', amount: 700 }] },
+      { id: 7, name: 'Sunita Kumari', designation: 'Painter', phone: '+91 95678 90123', joinDate: '30 Nov 2024', active: true, rate: 550, docs: [], advances: [{ date: '2026-9-8', amount: 550 }] },
+      { id: 8, name: 'Rajesh Prasad', designation: 'Mason', phone: '+91 91234 56780', joinDate: '05 May 2023', active: false, rate: 650, docs: ['Photo.jpg'], advances: [{ date: '2026-9-12', amount: 900 }] },
+      { id: 9, name: 'Deepak Thakur', designation: 'Plumber', phone: '+91 98765 43210', joinDate: '21 Jul 2025', active: true, rate: 700, docs: [], advances: [{ date: '2026-8-28', amount: 1400 }, { date: '2026-9-17', amount: 700 }] }
+    ];
+    return base.map((w) => {
+      const att = {};
+      const seed = w.id * 3;
+      for (let d = 1; d <= 18; d++) {
+        const r = (d + seed) % 5;
+        let s = 'P';
+        if (r === 0) s = 'A';
+        else if (r === 1) s = 'H';
+        att['2026-9-' + d] = s;
+      }
+      return Object.assign({}, w, { attendance: att });
+    });
+  }
+
+  avatarFor(id) {
+    return this.AVATAR[(id - 1) % this.AVATAR.length];
+  }
+
+  initials(name) {
+    const parts = name.trim().split(' ');
+    const a = parts[0] ? parts[0][0] : '';
+    const b = parts.length > 1 ? parts[parts.length - 1][0] : '';
+    return (a + b).toUpperCase();
+  }
+
+  fmtINR(n) {
+    const v = Math.round(n || 0);
+    return '₹' + v.toLocaleString('en-IN');
+  }
+
+  fmtDate(key) {
+    const parts = key.split('-');
+    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+    return d + ' ' + this.MONTHS[m - 1].slice(0, 3) + ' ' + y;
+  }
+
+  go(view, patch) {
+    this.setState(Object.assign({ view: view }, patch || {}));
+  }
+
+  selectWorker(id) {
+    this.go('detail', { selectedId: id, calYear: this.TODAY.y, calMonth: this.TODAY.m });
+  }
+
+  toggleMenu() {
+    this.setState({ menuOpen: !this.state.menuOpen });
+  }
+
+  closeMenu() {
+    this.setState({ menuOpen: false });
+  }
+
+  resetForm() {
+    this.setState({ formName: '', formDesignation: '', formPhone: '', formJoinDate: '', formRate: '' });
+  }
+
+  toggleActive(id) {
+    this.setState({ workers: this.state.workers.map((w) => w.id === id ? Object.assign({}, w, { active: !w.active }) : w) });
+  }
+
+  setTodayStatus(id, status) {
+    const key = this.TODAY.y + '-' + this.TODAY.m + '-' + this.TODAY.d;
+    this.setState({
+      workers: this.state.workers.map((w) => {
+        if (w.id !== id) return w;
+        const att = Object.assign({}, w.attendance);
+        att[key] = status;
+        return Object.assign({}, w, { attendance: att });
+      })
+    });
+  }
+
+  updateRate(id, val) {
+    const n = parseFloat(val);
+    this.setState({ workers: this.state.workers.map((w) => w.id === id ? Object.assign({}, w, { rate: isNaN(n) ? w.rate : n }) : w) });
+  }
+
+  updateField(id, field, val) {
+    this.setState({
+      workers: this.state.workers.map((w) => {
+        if (w.id !== id) return w;
+        const copy = Object.assign({}, w);
+        copy[field] = val;
+        return copy;
+      })
+    });
+  }
+
+  addDocument(id) {
+    this.setState({
+      workers: this.state.workers.map((w) => w.id === id ? Object.assign({}, w, { docs: w.docs.concat(['Document ' + (w.docs.length + 1) + '.pdf']) }) : w)
+    });
+  }
+
+  removeDocument(id, idx) {
+    this.setState({
+      workers: this.state.workers.map((w) => w.id === id ? Object.assign({}, w, { docs: w.docs.filter((d, i) => i !== idx) }) : w)
+    });
+  }
+
+  addWorker() {
+    if (!this.state.formName.trim()) return;
+    const ids = this.state.workers.map((w) => w.id);
+    const newId = ids.length ? Math.max.apply(null, ids) + 1 : 1;
+    const rate = parseFloat(this.state.formRate);
+    const newWorker = {
+      id: newId,
+      name: this.state.formName.trim(),
+      designation: this.state.formDesignation.trim() || '—',
+      phone: this.state.formPhone.trim() || '—',
+      joinDate: this.state.formJoinDate.trim() || '—',
+      active: true,
+      rate: isNaN(rate) ? 0 : rate,
+      docs: [],
+      advances: [],
+      attendance: {}
+    };
+    this.setState({ workers: this.state.workers.concat([newWorker]), view: 'list' });
+  }
+
+  prevMonth() {
+    let m = this.state.calMonth - 1, y = this.state.calYear;
+    if (m < 1) { m = 12; y = y - 1; }
+    this.setState({ calMonth: m, calYear: y });
+  }
+
+  nextMonth() {
+    let m = this.state.calMonth + 1, y = this.state.calYear;
+    if (m > 12) { m = 1; y = y + 1; }
+    this.setState({ calMonth: m, calYear: y });
+  }
+
+  openDay(key) {
+    const worker = this.state.workers.find((w) => w.id === this.state.selectedId);
+    const existingStatus = worker && worker.attendance[key] ? worker.attendance[key] : 'P';
+    const existingAdv = worker ? worker.advances.find((a) => a.date === key) : null;
+    this.setState({
+      popupOpen: true,
+      popupKey: key,
+      popupStatus: existingStatus,
+      popupAdvOn: !!existingAdv,
+      popupAdvAmt: existingAdv ? String(existingAdv.amount) : ''
+    });
+  }
+
+  cancelPopup() {
+    this.setState({ popupOpen: false });
+  }
+
+  savePopup() {
+    const key = this.state.popupKey;
+    const id = this.state.selectedId;
+    const status = this.state.popupStatus;
+    const advOn = this.state.popupAdvOn;
+    const amt = parseFloat(this.state.popupAdvAmt);
+    this.setState({
+      workers: this.state.workers.map((w) => {
+        if (w.id !== id) return w;
+        const att = Object.assign({}, w.attendance);
+        att[key] = status;
+        let advances = w.advances.filter((a) => a.date !== key);
+        if (advOn && !isNaN(amt) && amt > 0) {
+          advances = advances.concat([{ date: key, amount: amt }]);
+        }
+        return Object.assign({}, w, { attendance: att, advances: advances });
+      }),
+      popupOpen: false
+    });
+  }
+
+  buildCells(worker, year, month) {
+    const self = this;
+    const first = new Date(year, month - 1, 1).getDay();
+    const days = new Date(year, month, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const dayNum = i - first + 1;
+      if (dayNum < 1 || dayNum > days) {
+        cells.push({ key: 'e' + i, day: '', bg: 'transparent', fg: 'transparent', border: 'none', vis: 'hidden', pick: () => {} });
+      } else {
+        const key = year + '-' + month + '-' + dayNum;
+        const status = worker.attendance[key];
+        const isToday = (year === this.TODAY.y && month === this.TODAY.m && dayNum === this.TODAY.d);
+        const st = status ? this.STATUS[status] : null;
+        cells.push({
+          key: key,
+          day: dayNum,
+          bg: st ? st.bg : '#FFFFFF',
+          fg: st ? st.fg : '#78716C',
+          border: isToday ? '2px solid #0F766E' : (st ? '1px solid transparent' : '1px solid #E7E5E4'),
+          vis: 'visible',
+          pick: () => self.openDay(key)
+        });
+      }
+    }
+    return cells;
+  }
+
+  countStatus(worker, year, month) {
+    let p = 0, h = 0, a = 0;
+    Object.keys(worker.attendance).forEach((k) => {
+      const parts = k.split('-');
+      if (parseInt(parts[0], 10) === year && parseInt(parts[1], 10) === month) {
+        const s = worker.attendance[k];
+        if (s === 'P') p++;
+        else if (s === 'H') h++;
+        else if (s === 'A') a++;
+      }
+    });
+    return { p: p, h: h, a: a };
+  }
+
+  totals(worker) {
+    let gross = 0;
+    Object.keys(worker.attendance).forEach((k) => {
+      const s = worker.attendance[k];
+      if (s === 'P') gross += worker.rate;
+      else if (s === 'H') gross += worker.rate * 0.5;
+    });
+    let advAll = 0, advMonth = 0, advYear = 0;
+    worker.advances.forEach((adv) => {
+      advAll += adv.amount;
+      const parts = adv.date.split('-');
+      const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+      if (y === this.TODAY.y) advYear += adv.amount;
+      if (y === this.TODAY.y && m === this.TODAY.m) advMonth += adv.amount;
+    });
+    return { gross: gross, net: gross - advAll, advMonth: advMonth, advYear: advYear, remaining: advAll };
+  }
+
+  emptyDetail() {
+    return {
+      id: null, name: '', initials: '', avatarBg: '#E2E8F0', avatarFg: '#334155',
+      designation: '', phone: '', joinDate: '', activeLabel: '', activeBg: '#F5F5F4', activeFg: '#78716C',
+      onToggleActive: () => {}, docsChips: [], docsEmpty: true,
+      monthLabel: '', weekLabels: [{ t: 'Su' }, { t: 'Mo' }, { t: 'Tu' }, { t: 'We' }, { t: 'Th' }, { t: 'Fr' }, { t: 'Sa' }],
+      cells: [], presentCount: 0, halfCount: 0, absentCount: 0, onPrev: () => {}, onNext: () => {},
+      rate: 0, halfPayLabel: '₹0', onRateChange: () => {},
+      grossLabel: '₹0', netLabel: '₹0', advMonthLabel: '₹0', advYearLabel: '₹0', remainingLabel: '₹0',
+      advRows: [], advEmpty: true
+    };
+  }
+
+  emptyManage() {
+    return {
+      id: null, name: '', initials: '', avatarBg: '#E2E8F0', avatarFg: '#334155',
+      activeLabel: '', activeBg: '#F5F5F4', activeFg: '#78716C', onToggleActive: () => {},
+      nameVal: '', designationVal: '', phoneVal: '', joinDateVal: '',
+      onNameChange: () => {}, onDesignationChange: () => {}, onPhoneChange: () => {}, onJoinDateChange: () => {},
+      docsChips: [], docsEmpty: true, onAddDoc: () => {}
+    };
+  }
+
+  renderVals() {
+    const self = this;
+    const todayKey = this.TODAY.y + '-' + this.TODAY.m + '-' + this.TODAY.d;
+
+    const listItems = this.state.workers.map((w) => {
+      const todayStatus = w.attendance[todayKey] || null;
+      const av = this.avatarFor(w.id);
+      const pills = ['P', 'H', 'A'].map((s) => {
+        const isActive = todayStatus === s;
+        const c = this.STATUS[s];
+        return {
+          code: s,
+          bg: isActive ? c.bg : '#FFFFFF',
+          fg: isActive ? c.fg : '#A8A29E',
+          border: isActive ? c.fg : '#D6D3D1',
+          set: () => self.setTodayStatus(w.id, s)
+        };
+      });
+      return {
+        id: w.id,
+        name: w.name,
+        initials: this.initials(w.name),
+        avatarBg: av.bg,
+        avatarFg: av.fg,
+        inactive: !w.active,
+        rowOpacity: w.active ? 1 : 0.6,
+        pills: pills,
+        open: () => self.selectWorker(w.id)
+      };
+    });
+
+    const manageWorkers = this.state.workers.map((w) => {
+      const av = this.avatarFor(w.id);
+      return {
+        id: w.id,
+        name: w.name,
+        initials: this.initials(w.name),
+        avatarBg: av.bg,
+        avatarFg: av.fg,
+        designation: w.designation,
+        activeLabel: w.active ? 'Active' : 'Inactive',
+        activeBg: w.active ? '#DCFCE7' : '#F5F5F4',
+        activeFg: w.active ? '#166534' : '#78716C',
+        open: () => self.go('manageEdit', { selectedId: w.id })
+      };
+    });
+
+    let detail = this.emptyDetail();
+    const worker = this.state.workers.find((w) => w.id === this.state.selectedId);
+    if (worker && this.state.view === 'detail') {
+      const av = this.avatarFor(worker.id);
+      const cells = this.buildCells(worker, this.state.calYear, this.state.calMonth);
+      const counts = this.countStatus(worker, this.state.calYear, this.state.calMonth);
+      const tot = this.totals(worker);
+      const docsChips = worker.docs.map((d, i) => ({ key: 'd' + i, name: d }));
+      const advRows = worker.advances.slice().sort((a, b) => {
+        const pa = a.date.split('-').map(Number), pb = b.date.split('-').map(Number);
+        return (pb[0] * 10000 + pb[1] * 100 + pb[2]) - (pa[0] * 10000 + pa[1] * 100 + pa[2]);
+      }).map((adv, i) => ({ key: 'a' + i, dateLabel: this.fmtDate(adv.date), amountLabel: this.fmtINR(adv.amount) }));
+
+      detail = {
+        id: worker.id, name: worker.name, initials: this.initials(worker.name),
+        avatarBg: av.bg, avatarFg: av.fg, designation: worker.designation, phone: worker.phone, joinDate: worker.joinDate,
+        activeLabel: worker.active ? 'Active' : 'Inactive',
+        activeBg: worker.active ? '#DCFCE7' : '#F5F5F4',
+        activeFg: worker.active ? '#166534' : '#78716C',
+        onToggleActive: () => self.toggleActive(worker.id),
+        docsChips: docsChips, docsEmpty: docsChips.length === 0,
+        monthLabel: this.MONTHS[this.state.calMonth - 1] + ' ' + this.state.calYear,
+        weekLabels: [{ t: 'Su' }, { t: 'Mo' }, { t: 'Tu' }, { t: 'We' }, { t: 'Th' }, { t: 'Fr' }, { t: 'Sa' }],
+        cells: cells, presentCount: counts.p, halfCount: counts.h, absentCount: counts.a,
+        onPrev: () => self.prevMonth(), onNext: () => self.nextMonth(),
+        rate: worker.rate, halfPayLabel: this.fmtINR(worker.rate * 0.5),
+        onRateChange: (e) => self.updateRate(worker.id, e.target.value),
+        grossLabel: this.fmtINR(tot.gross), netLabel: this.fmtINR(tot.net),
+        advMonthLabel: this.fmtINR(tot.advMonth), advYearLabel: this.fmtINR(tot.advYear), remainingLabel: this.fmtINR(tot.remaining),
+        advRows: advRows, advEmpty: advRows.length === 0
+      };
+    }
+
+    let manageDetail = this.emptyManage();
+    if (worker && this.state.view === 'manageEdit') {
+      const av = this.avatarFor(worker.id);
+      const docsChips = worker.docs.map((d, i) => ({ key: 'd' + i, name: d, remove: () => self.removeDocument(worker.id, i) }));
+      manageDetail = {
+        id: worker.id, name: worker.name, initials: this.initials(worker.name),
+        avatarBg: av.bg, avatarFg: av.fg,
+        activeLabel: worker.active ? 'Active' : 'Inactive',
+        activeBg: worker.active ? '#DCFCE7' : '#F5F5F4',
+        activeFg: worker.active ? '#166534' : '#78716C',
+        onToggleActive: () => self.toggleActive(worker.id),
+        nameVal: worker.name, designationVal: worker.designation, phoneVal: worker.phone, joinDateVal: worker.joinDate,
+        onNameChange: (e) => self.updateField(worker.id, 'name', e.target.value),
+        onDesignationChange: (e) => self.updateField(worker.id, 'designation', e.target.value),
+        onPhoneChange: (e) => self.updateField(worker.id, 'phone', e.target.value),
+        onJoinDateChange: (e) => self.updateField(worker.id, 'joinDate', e.target.value),
+        docsChips: docsChips, docsEmpty: docsChips.length === 0,
+        onAddDoc: () => self.addDocument(worker.id)
+      };
+    }
+
+    const popupStatusOptions = ['P', 'H', 'A'].map((s) => {
+      const isSel = this.state.popupStatus === s;
+      const c = this.STATUS[s];
+      return {
+        code: s, label: c.label,
+        bg: isSel ? c.bg : '#FFFFFF', fg: isSel ? c.fg : '#57534E', border: isSel ? c.fg : '#D6D3D1',
+        pick: () => self.setState({ popupStatus: s })
+      };
+    });
+
+    const nameFilled = this.state.formName.trim().length > 0;
+    const createForm = {
+      name: this.state.formName, designation: this.state.formDesignation,
+      phone: this.state.formPhone, joinDate: this.state.formJoinDate, rate: this.state.formRate,
+      onNameChange: (e) => self.setState({ formName: e.target.value }),
+      onDesignationChange: (e) => self.setState({ formDesignation: e.target.value }),
+      onPhoneChange: (e) => self.setState({ formPhone: e.target.value }),
+      onJoinDateChange: (e) => self.setState({ formJoinDate: e.target.value }),
+      onRateChange: (e) => self.setState({ formRate: e.target.value }),
+      saveBg: nameFilled ? '#0F766E' : '#E7E5E4',
+      saveFg: nameFilled ? '#FFFFFF' : '#A8A29E',
+      onSave: () => self.addWorker(),
+      onCancel: () => self.go('list')
+    };
+
+    return {
+      isListView: this.state.view === 'list',
+      isDetailView: this.state.view === 'detail',
+      isManageListView: this.state.view === 'manageList',
+      isManageEditView: this.state.view === 'manageEdit',
+      isCreateView: this.state.view === 'create',
+      isPlaceholderView: this.state.view === 'placeholder',
+      todayLabel: '18 Sep 2026',
+      workerCountLabel: 'Workers (' + this.state.workers.length + ')',
+      listItems: listItems,
+      manageWorkers: manageWorkers,
+      detail: detail,
+      manageDetail: manageDetail,
+      createForm: createForm,
+      placeholderTitle: this.state.placeholderTitle,
+      onBack: () => self.go('list'),
+      onBackManageList: () => self.go('list'),
+      onBackManageEdit: () => self.go('manageList'),
+      onBackPlaceholder: () => self.go('list'),
+      menuOpen: this.state.menuOpen,
+      fabRotate: this.state.menuOpen ? '45deg' : '0deg',
+      toggleMenu: () => self.toggleMenu(),
+      closeMenu: () => self.closeMenu(),
+      menuCreate: () => { self.resetForm(); self.go('create', { menuOpen: false }); },
+      menuReporting: () => self.go('placeholder', { menuOpen: false, placeholderTitle: 'Reporting' }),
+      menuManage: () => self.go('manageList', { menuOpen: false }),
+      menuSettings: () => self.go('placeholder', { menuOpen: false, placeholderTitle: 'Settings' }),
+      popupOpen: this.state.popupOpen,
+      popupDateLabel: this.state.popupKey ? this.fmtDate(this.state.popupKey) : '',
+      popupStatusOptions: popupStatusOptions,
+      popupAdvOn: this.state.popupAdvOn,
+      popupAdvAmt: this.state.popupAdvAmt,
+      onToggleAdv: (e) => self.setState({ popupAdvOn: e.target.checked }),
+      onAmtChange: (e) => self.setState({ popupAdvAmt: e.target.value }),
+      onCancelPopup: () => self.cancelPopup(),
+      onSavePopup: () => self.savePopup()
+    };
+  }
+}
+</script>
+</body>
+</html>

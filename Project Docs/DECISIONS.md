@@ -79,6 +79,20 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: Owner's explicit direction; not otherwise elaborated.
 - Consequences: Any worker-record deletion feature is out of scope. The data model must support an Active/Inactive status field and must not cascade-delete or orphan a worker's attendance/advance history on deactivation.
 
+## Decision: Prototype UI navigation — home list + floating quick-actions menu, Manage Employees split from the attendance module
+
+- Status: Accepted
+- Date: 2026-09-18
+- Context: While building the mobile UI prototype, two navigation questions came up that `PROJECT.md`'s original spec didn't resolve: (1) how the admin gets from a home screen to admin-only actions like adding a worker, and (2) whether worker housekeeping (Active/Inactive, editing personal info, documents) lives in the same screen as day-to-day attendance/salary tracking, or separately.
+- Decision:
+  - A home screen lists all workers by full name and today's status, with status changeable inline (tap a P/H/A pill) without opening the worker.
+  - A floating circular quick-actions menu (bottom-right) opens four options: Create New Employee, Manage Employees, Reporting, Settings.
+  - Tapping a worker's name from the home list opens their **attendance/salary/advance module** (the module described in `PROJECT.md`'s Core Features).
+  - **Manage Employees** is a separate flow (its own worker list → its own per-worker edit screen) for Active/Inactive toggling, personal-info edits, and document management — not mixed into the attendance module.
+  - Reporting and Settings are reserved menu entries with placeholder "coming soon" screens; their actual scope is undecided (see `TASKS.md`).
+- Reasoning: Owner's explicit direction, given while directing the prototype build. Splitting "view/record attendance" (frequent, fast, day-to-day) from "manage worker identity" (infrequent, administrative) keeps the high-traffic home→worker flow uncluttered.
+- Consequences: The real frontend's routing/screens should follow this split (two distinct worker-detail routes, not one) rather than the single unified "worker module" implied by `PROJECT.md`'s original wording. Reporting and Settings are now named in the product's navigation but still have no defined scope — do not build them out without a further owner decision.
+
 ## Decision: UI language — English
 
 - Status: Accepted

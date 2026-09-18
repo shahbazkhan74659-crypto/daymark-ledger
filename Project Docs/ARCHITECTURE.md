@@ -4,9 +4,11 @@ This describes the **actual current implementation** — which is nothing; no co
 
 ## System Overview
 
-**Implemented:** Nothing. The repository contains only this `Project Docs/` documentation system.
+**Implemented:** No production code. The repository contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below) — no framework, backend, or database exists yet.
 
-**Planned:** A normal client-server web app — a React frontend talking to a Node/Express REST API backend, backed by a PostgreSQL database — gated by a dedicated login screen, accessible from any device with internet access (not an offline-only/local-storage app; see `DECISIONS.md`'s production stack decision). Provides a per-worker module (profile, monthly attendance calendar, salary configuration, auto-calculated salary/advance totals). See `PROJECT.md` for the full feature set.
+**Prototype (2026-09-18, not production code):** An interactive, non-functional UI prototype — a mobile view (390×844), built as a Claude Artifact (Design Component format, `<x-dc>`/`DCLogic`, not React/Vite) — lives at `Prototype/project/Main.dc.html` in this repo, with the live/editable version linked from `Prototype/README.md`. It uses in-memory sample data only (no backend, no persistence) and exists purely to validate the UX before real implementation. Screens covered: Worker List (home, with inline today-status change), Worker Detail (attendance calendar, salary config, salary/advance totals, advance history), a floating quick-actions menu, Manage Employees List, Manage Employee Edit (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder "coming soon" screens for Reporting and Settings (not yet designed — see `TASKS.md`). This prototype's screen/data shape should inform, but does not replace, the real Prisma schema and API design once implementation starts.
+
+**Planned:** A normal client-server web app — a React frontend talking to a Node/Express REST API backend, backed by a PostgreSQL database — gated by a dedicated login screen, accessible from any device with internet access (not an offline-only/local-storage app; see `DECISIONS.md`'s production stack decision). Provides a per-worker module (profile, monthly attendance calendar, salary configuration, auto-calculated salary/advance totals) plus a separate Manage Employees flow (see `PROJECT.md` for the full feature set, and DECISIONS.md's prototype navigation decision).
 
 ## Technology Stack
 
@@ -24,12 +26,16 @@ This describes the **actual current implementation** — which is nothing; no co
 
 ## Component Structure
 
-**Planned, not yet implemented:**
+**Planned, not yet implemented** (screen breakdown validated by the prototype — see "Prototype" above):
 - A login screen.
-- A worker module per worker, containing: a personal/employment-info section (with document and photo upload), a monthly attendance calendar, and a salary-configuration/calculation section.
+- A home screen listing all workers by full name and today's attendance status, with status changeable inline from the list.
+- A worker module per worker (opened by tapping their name from the home list), containing: a personal/employment-info section (with document and photo upload), a monthly attendance calendar, and a salary-configuration/calculation section.
 - A monthly calendar component per worker, color-coded per day (Green = Present, Yellow = Half day, Red = Absent), with per-status counts shown below it, and every day tappable/editable regardless of date.
 - A day-tap popup for setting a day's attendance status, containing an "Advance Salary" checkbox that reveals a ₹-prefixed amount input when checked.
-- Whether a dashboard/home screen listing all workers exists, and what it shows, is an open item (see `TASKS.md`).
+- A floating quick-actions menu (Create New Employee, Manage Employees, Reporting, Settings).
+- A Manage Employees flow, separate from the worker module above: a list of all workers, and a per-worker edit screen for Active/Inactive status, personal-info edits, and document management.
+- A Create New Employee form.
+- Reporting and Settings screens are named/reserved in the navigation but **not yet designed** — see `TASKS.md`.
 
 ## Data Flow
 

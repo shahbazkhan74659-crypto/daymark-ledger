@@ -11,8 +11,8 @@ Open items carried over from the discussion phase, not yet decided or scoped int
 - Choose a PaaS hosting platform for the backend/database (e.g. Render, Railway, Fly.io — see `DECISIONS.md`'s production stack decision; frontend/backend/database/ORM/auth approach are already chosen).
 - Itemize the exact fields for a worker's "Personal info" (e.g. address, ID number, emergency contact — not yet itemized).
 - Decide which document types to support for worker document uploads (ID proofs, contracts, etc. — not yet itemized).
-- Decide whether there's a dashboard/home screen listing all workers, and what it shows at a glance.
-- Decide whether reports/export (e.g. PDF payslip generation) are wanted.
+- Decide whether reports/export (e.g. PDF payslip generation) are wanted — the prototype reserves a "Reporting" menu entry for this but it is a placeholder only, not yet designed.
+- Design the Settings screen — the prototype reserves a menu entry for it (placeholder only); likely scope includes admin credential management, but this hasn't been discussed.
 - Decide whether overtime, bonuses, or deductions beyond attendance/advance are in scope.
 
 Once the tech stack and first implementation phase are decided by the owner, add that phase to `PHASES.md` and move its concrete work items here.
@@ -32,3 +32,4 @@ None.
 - [x] Extracted the remaining raw discussion notes (`PROJECT_SPEC.md`) fully into this documentation system and deleted the file, per the owner's request — 2026-09-18
 - [x] Named the app **Daymark Ledger** — explored naming options against ChatGPT and Gemini using the same brief, converged on "Daymark" plus "Ledger" — 2026-09-18 (see `PROJECT.md`, `DECISIONS.md`)
 - [x] Locked the production tech stack: React + Vite + TypeScript + Tailwind CSS (frontend), Node.js + Express + TypeScript REST API (backend, Next.js not used by default), PostgreSQL 18 via Prisma, database-backed sessions with bcrypt password hashing — chosen after the owner clarified the app needs to be usable from any device, ruling out the original offline/local-storage plan — 2026-09-18 (see `PROJECT.md`, `ARCHITECTURE.md`, `DECISIONS.md`)
+- [x] Built an interactive mobile UI prototype (Claude Artifact, not production code) covering: home worker list with inline today-status change, per-worker attendance/salary/advance detail, a floating quick-actions menu, Manage Employees (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder Reporting/Settings screens — 2026-09-18 (source kept at `Prototype/` in this repo; see `ARCHITECTURE.md`'s Prototype note and `DECISIONS.md`)
