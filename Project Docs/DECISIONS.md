@@ -1,0 +1,93 @@
+# Technical Decisions
+
+These decisions were made during a prior discussion, before any code was written. They are recorded here as established direction for `PROJECT.md` and `ARCHITECTURE.md`. Where reasoning beyond the owner's stated preference was not captured at the time, this is marked explicitly rather than guessed.
+
+## Decision: App name — Daymark Ledger
+
+- Status: Accepted
+- Date: 2026-09-18
+- Context: The app had no name yet. The owner wanted a short, one-word-style name that evokes daily attendance/tracking metaphorically (not a literal translation of "attendance," and deliberately not region/language-flavored). As part of exploring options, the same brief was independently given to both ChatGPT and Gemini, and their suggestions were compared against Claude's own.
+- Decision: **Daymark Ledger** — combining "Daymark" (marking each day, suggested independently by both ChatGPT and Gemini) with "Ledger" (the record-keeping side covering salary/advance tracking, suggested by Gemini and fitting the app's calculation-heavy nature).
+- Reasoning: "Daymark" was the strongest single convergence point across all three models' independent suggestions and matched the brief exactly (short, metaphorical, evokes daily marking without naming attendance directly). "Ledger" was added to acknowledge that the app is equally about salary/advance record-keeping, not attendance alone — owner's explicit choice to combine the two rather than pick one standalone word.
+- Consequences: Any future branding, PWA manifest `name`/`short_name`, package identifiers, or app-store listing should use "Daymark Ledger" (or a "Daymark" short form) rather than a generic/placeholder name.
+
+## Decision: Offline-first mobile PWA, no server/hosting
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: The app needed a platform approach — a hosted client-server product, a native app, or a fully local/offline tool — chosen before any implementation began.
+- Decision: Build an installable mobile web app (PWA). It must work fully offline; all data is stored locally on the phone. No server or hosting is required or planned.
+- Reasoning: Owner's explicit direction; not otherwise elaborated in the discussion record.
+- Consequences: No backend, API, or hosting decisions are needed. Local-storage mechanism and PWA tooling remain open (see `TASKS.md`). Backup/export has no server-side fallback to rely on — see the dedicated decision below.
+
+## Decision: Dedicated login screen with admin-set credentials
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: The app needed an access-control approach for its single admin user.
+- Decision: A dedicated login screen (not just a PIN), with username/password credentials set by the admin (the project owner's father) — presumably during first-time setup.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: No worker-facing accounts or multi-user auth are needed — this is the app's only account. Exact first-time-setup flow (how the admin sets their initial credentials) is not yet detailed.
+
+## Decision: Half-day pay = exactly 0.5 × per-day salary (flat rule)
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: Attendance can be marked Present, Half day, or Absent, and each worker has their own per-day salary rate. A rule was needed for how a half day is paid.
+- Decision: Half-day pay is always exactly 0.5 × the worker's per-day rate — the same flat multiplier for every worker, not configurable per worker.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: Salary calculation logic can apply one fixed multiplier for Half day status across all workers, with no per-worker override to account for.
+
+## Decision: Attendance edits allowed for any date, including past dates (backfill allowed)
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: A decision was needed on whether attendance entry should be restricted to "today only" or allow editing past dates.
+- Decision: Any date on the calendar — past or present — is editable. The admin can backfill or correct attendance for any day.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: The attendance calendar UI/data model must not special-case "today" as the only editable date — every calendar day needs the same tap-to-edit popup.
+
+## Decision: Advance salary logged as individual dated entries, not a single balance field
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: A decision was needed on how to record advance-salary payments — a single running balance the admin edits manually, or a history of individual payments.
+- Decision: Each advance is logged individually with its own date and amount, via a checkbox + ₹ amount field in the attendance day-popup. This builds a full history per worker, not just a single manually-edited running balance.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: Advance totals (running-month, whole-year, remaining owed) must be derived by summing the individual dated entries, not read from or written to a single balance field.
+
+## Decision: Advance salary display shows two totals — running month, and whole year plus remaining owed
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: Following from the individual-dated-entries decision above, a decision was needed on what summary figures to surface to the admin.
+- Decision: Show two auto-calculated advance figures: the running-month total (sum of advances taken so far in the current month), and the whole-year total (sum of advances taken in the current year) plus how much is still remaining/owed to be recovered from future salary.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: The calculation logic needs both a month-scoped and a year-scoped aggregation over the same advance-entry history, plus a "remaining owed" figure reconciling advances taken against salary earned.
+
+## Decision: Worker lifecycle — never deleted, Active/Inactive status only
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: Daily-wage worker headcount fluctuates day to day; a decision was needed on how to handle a worker who stops working and possibly returns later.
+- Decision: Workers are never deleted. A worker who stops working is marked Inactive. If they rejoin later — even months later — they are reactivated and keep all historical attendance/salary data intact.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: Any worker-record deletion feature is out of scope. The data model must support an Active/Inactive status field and must not cascade-delete or orphan a worker's attendance/advance history on deactivation.
+
+## Decision: Backup/export mechanism deferred
+
+- Status: Deferred
+- Date: 2026-09-17
+- Context: An offline, local-storage-only app has no server-side copy of its data, which raises the question of how the admin would recover data if the device is lost, reset, or replaced.
+- Decision: No backup/export/import feature is planned for now. The mechanism (manual export/import file vs. none at all) is explicitly left to be decided later.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: Data-loss risk on device loss/reset is currently unmitigated by design, pending a future decision. Revisit this before considering the app production-ready for real day-to-day use — see `TASKS.md`.
+
+## Decision: UI language — English
+
+- Status: Accepted
+- Date: 2026-09-17
+- Context: A decision was needed on the app's interface language.
+- Decision: English.
+- Reasoning: Owner's explicit direction; not otherwise elaborated.
+- Consequences: No localization/i18n framework is currently in scope.
