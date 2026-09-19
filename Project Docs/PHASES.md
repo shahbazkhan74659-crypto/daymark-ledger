@@ -91,7 +91,7 @@ Add one minimal API round-trip — e.g. extend the Phase 2 health-check endpoint
 ### Completion Criteria
 Running the frontend and backend locally together, the frontend successfully displays data that traveled frontend → backend → database → backend → frontend.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Added a Prisma Client singleton (`backend/src/db.ts`, `@prisma/adapter-pg` against `DATABASE_URL`) and a new `GET /api/db-check` endpoint (`backend/src/index.ts`) running `SELECT NOW()` via `$queryRaw` against the still-zero-model schema, returning `{ status, dbTime }`. `GET /health` was left untouched as a dependency-free liveness check. Added the `cors` package with an allow-listed origin (`CORS_ORIGIN` env var, defaulting to `http://localhost:5173`). Frontend gained a `VITE_API_BASE_URL` env var and `App.tsx` now fetches `/api/db-check` on mount and renders the result — this necessarily replaces Phase 5's intentionally blank page, since this phase's completion criteria requires visible fetched data. Verified with both dev servers running together: direct HTTP checks confirmed a real DB-sourced timestamp and the correct CORS header, `npm run build` compiled the backend cleanly, and — with the Claude-in-Chrome extension connected this session — an actual browser load of `http://localhost:5173` was confirmed rendering "Backend status: ok — DB time: ..." with zero console errors. No login, auth, or business logic/screens exist yet.
 
 ## Phase 7 — Login and Auth Backend
 

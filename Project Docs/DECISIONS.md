@@ -114,6 +114,15 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: This is the current officially recommended integration for a fresh Vite project — zero-config, faster builds, and avoids maintaining a parallel PostCSS pipeline. No concrete need for the legacy config-file approach exists yet.
 - Consequences: Future phases adding custom theme tokens, colors, or breakpoints should extend `frontend/src/index.css`'s `@theme` block rather than reaching for a `tailwind.config.js` — introducing one would mean reversing this decision and should get its own consult if a concrete need arises (e.g. a design-token generation tool that expects the legacy config format).
 
+## Decision: Frontend–backend dev connectivity — CORS + explicit `VITE_API_BASE_URL`, not a Vite dev proxy
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 6 (Connecting Frontend, Backend, and Database, see `PHASES.md`) needed the frontend to call the backend locally. Two common approaches exist: a Vite dev-server proxy (transparent same-origin requests in dev only, hiding the cross-origin nature of the real deployment), or CORS on the backend plus an explicit frontend-side base URL (matching how the two apps will actually be hosted).
+- Decision: Use CORS (the `cors` npm package, allow-listing an origin via a new `CORS_ORIGIN` backend env var, default `http://localhost:5173`) plus a new `VITE_API_BASE_URL` frontend env var — not a Vite proxy.
+- Reasoning: `ARCHITECTURE.md`'s planned production topology already hosts frontend and backend on separate origins (see the production stack decision above), so dev-time connectivity should mirror that shape rather than diverge from it. A proxy would work in dev but hide the cross-origin reality, requiring CORS and an explicit base URL to be introduced later anyway once hosted — building the same plumbing twice. Deciding this now means Phase 8+ inherits an already-proven, production-shaped pattern.
+- Consequences: Any future API calls from the frontend should go through `VITE_API_BASE_URL`, not a relative path assuming same-origin. Backend routes intended for frontend consumption must remain reachable under the CORS-allowed origin; widening `CORS_ORIGIN` (e.g. for a deployed frontend URL) is an env-var change, not a code change.
+
 ## Decision: UI language — English
 
 - Status: Accepted
