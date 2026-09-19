@@ -2,6 +2,8 @@
 
 Rules and instructions for how Claude should work in this repository.
 
+Dont commit or Push anything wothout my Consult next time
+
 ## Project Documentation System
 
 This project uses a strict 6-file Markdown documentation system, each file with **one** distinct responsibility:
