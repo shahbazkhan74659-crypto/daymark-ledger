@@ -2,13 +2,7 @@
 
 ## Active
 
-[Phase 1] Local PostgreSQL 18 Setup (see `PHASES.md`) — not yet started:
-
-- [ ] Confirm the local PostgreSQL 18 server is installed and running (a `postgresql-x64-18` Windows service was observed present and running on the dev machine during doc setup on 2026-09-18 — not yet re-verified as part of this task).
-- [ ] Decide/confirm the dev connection approach: use the existing native Windows PostgreSQL 18 service directly, vs. a Docker-based instance (Docker Desktop is also available on the dev machine) — no decision recorded yet.
-- [ ] Create an empty development database (name not yet chosen).
-- [ ] Create a dedicated dev role/credentials for the app to connect with (vs. using the default `postgres` superuser) — not yet decided.
-- [ ] Confirm a working connection string end-to-end (e.g. via `psql`), with zero tables and zero migrations present.
+None.
 
 ## Next
 
@@ -50,6 +44,11 @@ None.
 
 ## Completed
 
+- [x] [Phase 1] Confirmed the local PostgreSQL 18 server (`postgresql-x64-18` Windows service) is installed, running, and set to Automatic startup — 2026-09-19 (see `PHASES.md`, `DECISIONS.md`)
+- [x] [Phase 1] Decided the dev connection approach: use the existing native Windows PostgreSQL 18 service directly, not Docker — 2026-09-19 (see `DECISIONS.md`)
+- [x] [Phase 1] Created the empty development database `daymark_ledger_dev` — 2026-09-19
+- [x] [Phase 1] Decided to connect as the `postgres` superuser directly for local dev, no dedicated dev role — 2026-09-19 (see `DECISIONS.md`)
+- [x] [Phase 1] Confirmed a working connection string end-to-end via `psql` (`postgres@localhost:5432/daymark_ledger_dev`), with zero tables present — 2026-09-19
 - [x] [Phase 0] Define purpose and users (offline PWA for a single admin — the owner's father — managing daily-wage worker attendance/salary/advances) — 2026-09-17 (see `PROJECT.md`)
 - [x] [Phase 0] Define platform approach: offline-first mobile web PWA, local on-device storage, no server/hosting — 2026-09-17 (**superseded 2026-09-18** — the owner's father needs the app usable from any device, which local-only storage can't support; replaced by the production stack decision below — see `PROJECT.md`, `DECISIONS.md`)
 - [x] [Phase 0] Define login approach: dedicated login screen, admin-set credentials — 2026-09-17 (see `DECISIONS.md`)

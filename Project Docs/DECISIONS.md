@@ -93,6 +93,18 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: Owner's explicit direction, given while directing the prototype build. Splitting "view/record attendance" (frequent, fast, day-to-day) from "manage worker identity" (infrequent, administrative) keeps the high-traffic home→worker flow uncluttered.
 - Consequences: The real frontend's routing/screens should follow this split (two distinct worker-detail routes, not one) rather than the single unified "worker module" implied by `PROJECT.md`'s original wording. Reporting and Settings are now named in the product's navigation but still have no defined scope — do not build them out without a further owner decision.
 
+## Decision: Local dev Postgres — native Windows service, connect as `postgres` superuser (no dedicated dev role)
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 1 (Local PostgreSQL 18 Setup, see `PHASES.md`) needed two open decisions resolved: native Windows PostgreSQL 18 service vs. a Docker-based instance, and whether the backend connects via a dedicated dev role/credentials or the default `postgres` superuser. Investigation found the native `postgresql-x64-18` Windows service already installed, running, and set to Automatic startup, with port 5432 reachable — while Docker Desktop's service was present but stopped (Manual startup).
+- Decision:
+  - Use the **native Windows PostgreSQL 18 service** for local dev, not Docker.
+  - The backend connects as the **`postgres` superuser** directly for local dev — no separate dedicated dev role was created.
+  - The local development database is named **`daymark_ledger_dev`**.
+- Reasoning: The native service required zero additional setup (already running automatically), whereas Docker would have required starting Docker Desktop's service and provisioning a container — extra moving parts with no local-dev benefit. Using the `postgres` superuser directly was the owner's explicit choice, prioritizing local-dev simplicity over the least-privilege alternative (a dedicated role) that was initially recommended.
+- Consequences: This is a **local-dev-only** decision. The still-open production PaaS/hosting choice (see `TASKS.md`) is unaffected and may still warrant a dedicated, non-superuser database role for the production database — do not assume the superuser approach carries over to production without a separate decision.
+
 ## Decision: UI language — English
 
 - Status: Accepted

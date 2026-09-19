@@ -26,7 +26,7 @@ Local-machine database setup only: confirm/install PostgreSQL 18, ensure the ser
 ### Completion Criteria
 A local PostgreSQL 18 server is running and accepting connections, an empty development database exists, and connection credentials/connection string are confirmed working — with no tables, schema, or migrations present yet.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Used the existing native `postgresql-x64-18` Windows service (Docker Desktop was available but not used — its service was stopped/manual vs. the native service's already-running/Automatic state). Created the `daymark_ledger_dev` database; the backend connects as the `postgres` superuser directly for local dev (no dedicated dev role — owner's explicit choice). Connection confirmed end-to-end via `psql` with zero tables present. See `DECISIONS.md` for the reasoning.
 
 ## Phase 2 — Creating Backend Server
 
