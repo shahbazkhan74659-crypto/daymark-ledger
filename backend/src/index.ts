@@ -1,13 +1,19 @@
 import "dotenv/config";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { prisma } from "./db.js";
+import { authRouter } from "./routes/auth.js";
 
 const app = express();
 const port = process.env.PORT ?? 3001;
 const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:5173";
 
-app.use(cors({ origin: corsOrigin }));
+app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+app.use("/api/auth", authRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

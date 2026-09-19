@@ -132,6 +132,19 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: Owner's explicit dev-convenience preference, accepting the tradeoff called out in the superseded decision. The production hosting/topology this was meant to mirror is still an open, undecided item (see `TASKS.md`'s PaaS/hosting task) — it was not yet load-bearing, so mirroring it prematurely cost more dev friction (two ports, CORS config) than it bought. If production later does end up cross-origin, CORS/base-URL plumbing can be reintroduced at that point without difficulty, since the backend's CORS support was never removed.
 - Consequences: `VITE_API_BASE_URL` is removed from `frontend/.env` and `frontend/.env.example` (dead config once fetches are relative). `frontend/src/App.tsx` now calls `fetch('/api/db-check')` directly rather than building a base-URL-prefixed request. This is a **local-dev-only** change — the backend itself, its CORS middleware, and `CORS_ORIGIN` are untouched; if a future production decision hosts frontend and backend on separate origins, this proxy-based approach does not carry over, and CORS + an explicit base URL (or an equivalent reverse-proxy setup) will need to be reintroduced for production at that time.
 
+## Decision: Auth implementation specifics — bcrypt cost 12, SHA-256 session hashing, 30-day httpOnly cookie
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 7 (Login and Auth Backend, see `PHASES.md`) implemented the database-backed-sessions/bcrypt approach already accepted in the "Production stack" decision above, but that decision left several concrete parameters unspecified: the bcrypt work factor, which algorithm hashes the session token before storage, and the session cookie's lifetime/flags.
+- Decision:
+  - **bcrypt cost factor:** 12, for both the seeded admin password and any future password hashing.
+  - **Session token hashing:** the raw session token (32 random bytes, hex-encoded) is held only by the client cookie; the database stores its SHA-256 hex digest (`Session.hashedToken`), never the raw value.
+  - **Session cookie:** `httpOnly: true`, `sameSite: "lax"`, `secure` only when `NODE_ENV=production`, `path: "/"`, and a 30-day expiry/`maxAge` — chosen for admin convenience (the owner's father using the same device regularly) over a shorter-lived session, accepting that a stolen device/cookie stays valid up to 30 days; mitigated by the session being revocable server-side at any time (delete the `Session` row) per the original database-backed-sessions rationale.
+  - **Seed credentials:** provided via `ADMIN_USERNAME`/`ADMIN_PASSWORD` environment variables in the gitignored `backend/.env`, read by `backend/prisma/seed.ts` at seed time — never hardcoded in source, matching `PHASES.md`'s Phase 7 completion criteria.
+- Reasoning: These are the standard defaults for each mechanism (bcrypt cost 12 balances hashing cost vs. login latency; SHA-256 is sufficient for hashing an already-high-entropy random token, unlike a low-entropy password) plus the owner's explicit choice of a long-lived session for convenience.
+- Consequences: Changing the bcrypt cost factor later would not invalidate the already-hashed admin password (bcrypt hashes are self-describing), but changing the session-token hashing algorithm would invalidate all existing sessions (forcing re-login) since `Session.hashedToken` lookups are exact-match. The 30-day cookie lifetime should be revisited if the app is ever used on a shared/public device.
+
 ## Decision: UI language — English
 
 - Status: Accepted
