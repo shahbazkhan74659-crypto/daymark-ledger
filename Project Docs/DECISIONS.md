@@ -105,6 +105,15 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: The native service required zero additional setup (already running automatically), whereas Docker would have required starting Docker Desktop's service and provisioning a container — extra moving parts with no local-dev benefit. Using the `postgres` superuser directly was the owner's explicit choice, prioritizing local-dev simplicity over the least-privilege alternative (a dedicated role) that was initially recommended.
 - Consequences: This is a **local-dev-only** decision. The still-open production PaaS/hosting choice (see `TASKS.md`) is unaffected and may still warrant a dedicated, non-superuser database role for the production database — do not assume the superuser approach carries over to production without a separate decision.
 
+## Decision: Tailwind CSS v4 via `@tailwindcss/vite` (CSS-first config, no `tailwind.config.js`)
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 5 (Creating Frontend Server, see `PHASES.md`) needed to wire Tailwind CSS into the new Vite + React frontend. Two integration paths exist: the legacy PostCSS-config flow (`tailwind.config.js` + `postcss.config.js` + `npx tailwindcss init`), used by Tailwind v3 and earlier, or Tailwind v4's dedicated `@tailwindcss/vite` plugin, which is CSS-first and requires no separate config files.
+- Decision: Use Tailwind CSS v4 via the `@tailwindcss/vite` plugin. No `tailwind.config.js` or `postcss.config.js` exist in `frontend/` — theme/config, when needed, will live in `frontend/src/index.css` via CSS `@theme` directives (Tailwind v4's config model), not a separate JS config file.
+- Reasoning: This is the current officially recommended integration for a fresh Vite project — zero-config, faster builds, and avoids maintaining a parallel PostCSS pipeline. No concrete need for the legacy config-file approach exists yet.
+- Consequences: Future phases adding custom theme tokens, colors, or breakpoints should extend `frontend/src/index.css`'s `@theme` block rather than reaching for a `tailwind.config.js` — introducing one would mean reversing this decision and should get its own consult if a concrete need arises (e.g. a design-token generation tool that expects the legacy config format).
+
 ## Decision: UI language — English
 
 - Status: Accepted

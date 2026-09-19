@@ -78,7 +78,7 @@ Project scaffolding only: initialize the Vite + React + TypeScript project, conf
 ### Completion Criteria
 The frontend project runs locally via its dev script and serves a page in the browser. No backend connection, no routing, and no real app screens exist yet.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TypeScript). Tailwind CSS v4 installed via the `@tailwindcss/vite` plugin (CSS-first config — no `tailwind.config.js`/`postcss.config.js`; see `DECISIONS.md`). The demo scaffold content (counter, logos, sample CSS) was stripped per the owner's explicit direction that the placeholder page render as a plain blank white page — `App.tsx` renders an empty styled `<div>` only, with `import.meta.env.VITE_APP_NAME` logged to the console (not rendered) to prove the env-var mechanism works. `frontend/.env`/`.env.example` mirror the backend's tracked/gitignored pattern with one placeholder key; `VITE_API_BASE_URL` is deliberately deferred to Phase 6 per `ARCHITECTURE.md`. Verified via `npm run dev` (server boots on `http://localhost:5173/`, HTML/JS/CSS modules all served with 200s — the Claude-in-Chrome browser extension was unavailable in this session, so verification used direct HTTP checks against the dev server rather than a live browser render) and `npm run build` (clean `tsc -b && vite build`, producing `dist/` with no errors, including a non-empty compiled Tailwind CSS bundle confirming the pipeline runs). No routing, backend connection, or real screens exist yet.
 
 ## Phase 6 — Connecting Frontend, Backend, and Database
 

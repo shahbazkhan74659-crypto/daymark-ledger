@@ -4,7 +4,7 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## System Overview
 
-**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`), a scaffolded Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a single `GET /health` endpoint, and Prisma (CLI + Client, see Phases 3–4 in `PHASES.md`) installed, connected to that database via a Postgres driver adapter, and with its CLI tooling (`generate`/`validate`/`format`/`migrate status`/`studio`) fully verified via `backend/package.json`'s `prisma:*` scripts — no schema/models, migrations, auth, or business-logic routes yet. The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below). No frontend exists yet.
+**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`), a scaffolded Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a single `GET /health` endpoint, and Prisma (CLI + Client, see Phases 3–4 in `PHASES.md`) installed, connected to that database via a Postgres driver adapter, and with its CLI tooling (`generate`/`validate`/`format`/`migrate status`/`studio`) fully verified via `backend/package.json`'s `prisma:*` scripts — no schema/models, migrations, auth, or business-logic routes yet. A scaffolded React 19 + Vite 8 + TypeScript + Tailwind CSS v4 frontend (`frontend/`, see Phase 5 in `PHASES.md`) runs as a bare dev server serving a single blank placeholder page — no routing, backend connection, or real screens yet. The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below).
 
 **Prototype (2026-09-18, not production code):** An interactive, non-functional UI prototype — a mobile view (390×844), built as a Claude Artifact (Design Component format, `<x-dc>`/`DCLogic`, not React/Vite) — lives at `Prototype/project/Main.dc.html` in this repo, with the live/editable version linked from `Prototype/README.md`. It uses in-memory sample data only (no backend, no persistence) and exists purely to validate the UX before real implementation. Screens covered: Worker List (home, with inline today-status change), Worker Detail (attendance calendar, salary config, salary/advance totals, advance history), a floating quick-actions menu, Manage Employees List, Manage Employee Edit (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder "coming soon" screens for Reporting and Settings (not yet designed — see `TASKS.md`). This prototype's screen/data shape should inform, but does not replace, the real Prisma schema and API design once implementation starts.
 
@@ -12,7 +12,7 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## Technology Stack
 
-- **Frontend:** React + Vite + TypeScript + Tailwind CSS — planned, not yet implemented (see `TASKS.md`/`PHASES.md` Phase 5).
+- **Frontend (implemented, Phase 5):** React 19 + Vite 8 + TypeScript, scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts`, run via npm scripts (`dev`, `build` via `tsc -b && vite build`, `preview`). Tailwind CSS v4 wired in via the `@tailwindcss/vite` plugin — CSS-first config, no `tailwind.config.js`/`postcss.config.js` (see `DECISIONS.md`). Currently renders a single blank placeholder page; no routing or real screens yet (Phase 8+).
 - **Backend (implemented, Phase 2):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
 - **Database (implemented, Phase 1):** PostgreSQL 18, local dev database `daymark_ledger_dev` on the native Windows service.
 - **ORM (implemented, Phases 3–4):** Prisma 7.10.0 (CLI + `@prisma/client`, pinned to matching versions), connected to Postgres via `@prisma/adapter-pg` (this Prisma version requires an explicit driver adapter — no built-in engine-binary connection). Config lives in `prisma7.config.ts` (not `schema.prisma`'s `env()`, per this version's setup) and is auto-discovered by the CLI despite its non-default filename. `backend/package.json`'s `prisma:validate`/`prisma:format`/`prisma:generate`/`prisma:migrate:status`/`prisma:studio` npm scripts wrap the CLI (each pinned to `--config prisma7.config.ts` for self-documentation) and are all confirmed working end-to-end against `daymark_ledger_dev`. Schema still has zero models (see `PHASES.md` Phase 7).
@@ -21,7 +21,7 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## Application Structure
 
-**Monorepo** (single git repo, resolved by Phase 2): top-level `backend/` (Express + TypeScript, scaffolded) and a future `frontend/` (React/Vite, Phase 5) directory, communicating over a REST API. No npm workspaces/build-orchestration tool (e.g. Turborepo) yet — each app has its own standalone `package.json`; revisit only if a concrete cross-package sharing need arises.
+**Monorepo** (single git repo, resolved by Phase 2): top-level `backend/` (Express + TypeScript, scaffolded) and `frontend/` (React/Vite, scaffolded Phase 5) directories, communicating over a REST API (not yet wired — Phase 6). No npm workspaces/build-orchestration tool (e.g. Turborepo) — each app has its own standalone `package.json`; revisit only if a concrete cross-package sharing need arises.
 
 `backend/` layout as scaffolded:
 ```text
@@ -36,6 +36,23 @@ backend/
   .env.example             — committed template (PORT, DATABASE_URL shape)
   package.json
   tsconfig.json
+```
+
+`frontend/` layout as scaffolded (Phase 5):
+```text
+frontend/
+  src/
+    main.tsx                — React root bootstrap
+    App.tsx                 — blank placeholder page (plain white div); logs VITE_APP_NAME to console
+    index.css                — @import "tailwindcss" (Tailwind v4 entry point)
+  public/
+    favicon.svg
+  index.html
+  vite.config.ts            — @vitejs/plugin-react + @tailwindcss/vite
+  .env                      — local env vars incl. VITE_APP_NAME (gitignored)
+  .env.example              — committed template
+  package.json
+  tsconfig.json / tsconfig.app.json / tsconfig.node.json
 ```
 
 ## Component Structure
@@ -81,7 +98,7 @@ None planned.
 
 ## Build & Runtime
 
-**Backend (implemented, Phase 2):** `npm run dev` (`tsx watch src/index.ts`) for local development; `npm run build` (`tsc` to `dist/`) + `npm start` (`node dist/index.js`) for a compiled run — both verified working. **Frontend:** not yet decided in detail — Vite will build it once scaffolded (Phase 5). **Database (Phases 3–4):** Prisma Client connects to PostgreSQL via `@prisma/adapter-pg`. `backend/package.json`'s `prisma:generate`, `prisma:validate`, `prisma:format`, `prisma:migrate:status`, and `prisma:studio` scripts wrap the corresponding CLI commands and are all confirmed working against `daymark_ledger_dev` — no migrations exist yet (first migration is Phase 7's User/Session schema).
+**Backend (implemented, Phase 2):** `npm run dev` (`tsx watch src/index.ts`) for local development; `npm run build` (`tsc` to `dist/`) + `npm start` (`node dist/index.js`) for a compiled run — both verified working. **Frontend (implemented, Phase 5):** `npm run dev` (Vite dev server, `http://localhost:5173/`) for local development; `npm run build` (`tsc -b && vite build` to `dist/`) + `npm run preview` for a compiled/production-preview run — both verified working. **Database (Phases 3–4):** Prisma Client connects to PostgreSQL via `@prisma/adapter-pg`. `backend/package.json`'s `prisma:generate`, `prisma:validate`, `prisma:format`, `prisma:migrate:status`, and `prisma:studio` scripts wrap the corresponding CLI commands and are all confirmed working against `daymark_ledger_dev` — no migrations exist yet (first migration is Phase 7's User/Session schema).
 
 ## Architectural Boundaries
 
