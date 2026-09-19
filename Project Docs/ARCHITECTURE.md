@@ -1,10 +1,10 @@
 # Architecture
 
-This describes the **actual current implementation** — a local Postgres database and a bare Express/TypeScript backend scaffold, per Phases 1–2 — followed by the **planned** architecture per the chosen production stack for everything not yet built. See `DECISIONS.md` for the reasoning behind decisions already made, and `TASKS.md` for what's still open.
+This describes the **actual current implementation** — a local Postgres database, a bare Express/TypeScript backend scaffold, and Prisma Client connected to it, per Phases 1–3 — followed by the **planned** architecture per the chosen production stack for everything not yet built. See `DECISIONS.md` for the reasoning behind decisions already made, and `TASKS.md` for what's still open.
 
 ## System Overview
 
-**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`) and a scaffolded Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a single `GET /health` endpoint — no database connection, ORM, auth, or business-logic routes yet. The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below). No frontend exists yet.
+**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`), a scaffolded Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a single `GET /health` endpoint, and Prisma (CLI + Client, see Phase 3 in `PHASES.md`) installed and confirmed connecting to that database via a Postgres driver adapter — no schema/models, migrations, auth, or business-logic routes yet. The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below). No frontend exists yet.
 
 **Prototype (2026-09-18, not production code):** An interactive, non-functional UI prototype — a mobile view (390×844), built as a Claude Artifact (Design Component format, `<x-dc>`/`DCLogic`, not React/Vite) — lives at `Prototype/project/Main.dc.html` in this repo, with the live/editable version linked from `Prototype/README.md`. It uses in-memory sample data only (no backend, no persistence) and exists purely to validate the UX before real implementation. Screens covered: Worker List (home, with inline today-status change), Worker Detail (attendance calendar, salary config, salary/advance totals, advance history), a floating quick-actions menu, Manage Employees List, Manage Employee Edit (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder "coming soon" screens for Reporting and Settings (not yet designed — see `TASKS.md`). This prototype's screen/data shape should inform, but does not replace, the real Prisma schema and API design once implementation starts.
 
@@ -15,7 +15,7 @@ This describes the **actual current implementation** — a local Postgres databa
 - **Frontend:** React + Vite + TypeScript + Tailwind CSS — planned, not yet implemented (see `TASKS.md`/`PHASES.md` Phase 5).
 - **Backend (implemented, Phase 2):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
 - **Database (implemented, Phase 1):** PostgreSQL 18, local dev database `daymark_ledger_dev` on the native Windows service.
-- **ORM:** Prisma — planned, not yet implemented (see `PHASES.md` Phase 3/4).
+- **ORM (implemented, Phase 3):** Prisma 7.10.0 (CLI + `@prisma/client`, pinned to matching versions), connected to Postgres via `@prisma/adapter-pg` (this Prisma version requires an explicit driver adapter — no built-in engine-binary connection). Config lives in `prisma7.config.ts` (not `schema.prisma`'s `env()`, per this version's setup); schema still has zero models (see `PHASES.md` Phase 4).
 - **Auth:** Database-backed sessions (hashed session ID) + bcrypt-hashed account password — planned, not yet implemented (see `PHASES.md` Phase 7).
 - **Hosting/PaaS:** Not yet chosen — see `TASKS.md`.
 
@@ -27,9 +27,13 @@ This describes the **actual current implementation** — a local Postgres databa
 ```text
 backend/
   src/
-    index.ts        — Express app bootstrap, GET /health
-  .env               — local env vars (gitignored)
-  .env.example       — committed template (PORT)
+    index.ts               — Express app bootstrap, GET /health
+    generated/prisma/      — generated Prisma Client (gitignored, regenerated via `prisma generate`)
+  prisma/
+    schema.prisma          — datasource + generator blocks only, zero models yet
+  prisma7.config.ts        — Prisma config (schema path, migrations path, datasource URL from env)
+  .env                     — local env vars incl. DATABASE_URL (gitignored)
+  .env.example             — committed template (PORT, DATABASE_URL shape)
   package.json
   tsconfig.json
 ```
@@ -65,7 +69,7 @@ backend/
 
 ## Data / Persistence
 
-**Planned (decided 2026-09-18, not yet implemented):** PostgreSQL 18, accessed via Prisma. One central database is the single source of truth for all devices — this is the mechanism that satisfies the "open on any device" requirement (see `DECISIONS.md`). Per-worker data (profile, documents, photo, attendance-by-date, advance entries, salary rate) persists in the database and must survive a worker being marked Inactive and later reactivated — historical attendance/salary data must remain intact across that transition. Exact schema (tables/relations) not yet designed.
+**Connection implemented (Phase 3), schema not yet designed:** PostgreSQL 18 (`daymark_ledger_dev` locally), accessed via Prisma Client + `@prisma/adapter-pg`, confirmed connecting successfully. One central database is the single source of truth for all devices — this is the mechanism that satisfies the "open on any device" requirement (see `DECISIONS.md`). Per-worker data (profile, documents, photo, attendance-by-date, advance entries, salary rate) will persist in the database and must survive a worker being marked Inactive and later reactivated — historical attendance/salary data must remain intact across that transition. Exact schema (tables/relations, first migration) not yet designed — starts in Phase 7 (User/Session) per `PHASES.md`.
 
 ## Authentication & Authorization
 
@@ -77,7 +81,7 @@ None planned.
 
 ## Build & Runtime
 
-**Backend (implemented, Phase 2):** `npm run dev` (`tsx watch src/index.ts`) for local development; `npm run build` (`tsc` to `dist/`) + `npm start` (`node dist/index.js`) for a compiled run — both verified working. **Frontend:** not yet decided in detail — Vite will build it once scaffolded (Phase 5). **Database:** Prisma will manage migrations against PostgreSQL once introduced (Phase 3/4) — no migrations exist yet.
+**Backend (implemented, Phase 2):** `npm run dev` (`tsx watch src/index.ts`) for local development; `npm run build` (`tsc` to `dist/`) + `npm start` (`node dist/index.js`) for a compiled run — both verified working. **Frontend:** not yet decided in detail — Vite will build it once scaffolded (Phase 5). **Database (Phase 3):** Prisma Client connects to PostgreSQL via `@prisma/adapter-pg`, `npx prisma generate` regenerates the client from `prisma/schema.prisma` — no migrations exist yet (first migration is Phase 7's User/Session schema).
 
 ## Architectural Boundaries
 

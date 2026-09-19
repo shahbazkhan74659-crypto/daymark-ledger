@@ -52,7 +52,7 @@ Install Prisma in the Phase 2 backend project and configure it (e.g. `DATABASE_U
 ### Completion Criteria
 Prisma is installed in the backend project and Prisma Client successfully connects to the Phase 1 local database. No schema, no tables, no migrations exist yet.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Installed Prisma 7.10.0 (CLI) + `@prisma/client` 7.10.0 (kept pinned to matching versions — `npm install`'s "latest" tags for the two packages were briefly out of sync, CLI at an `8.0.0-rc` and client at `7.10.0`, resolved by pinning both to `7.10.0`). This Prisma version requires an explicit driver adapter (`@prisma/adapter-pg`) to connect to Postgres — there's no more implicit built-in engine-binary connection. Connection verified against `daymark_ledger_dev` via a throwaway script, then deleted. Schema remains bare (datasource + generator blocks only, zero models).
 
 ## Phase 4 — Full Prisma Setup
 
