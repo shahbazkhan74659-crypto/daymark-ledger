@@ -116,12 +116,21 @@ These decisions were made during a prior discussion, before any code was written
 
 ## Decision: Frontend–backend dev connectivity — CORS + explicit `VITE_API_BASE_URL`, not a Vite dev proxy
 
-- Status: Accepted
+- Status: Superseded — see the following decision
 - Date: 2026-09-19
 - Context: Phase 6 (Connecting Frontend, Backend, and Database, see `PHASES.md`) needed the frontend to call the backend locally. Two common approaches exist: a Vite dev-server proxy (transparent same-origin requests in dev only, hiding the cross-origin nature of the real deployment), or CORS on the backend plus an explicit frontend-side base URL (matching how the two apps will actually be hosted).
 - Decision: Use CORS (the `cors` npm package, allow-listing an origin via a new `CORS_ORIGIN` backend env var, default `http://localhost:5173`) plus a new `VITE_API_BASE_URL` frontend env var — not a Vite proxy.
 - Reasoning: `ARCHITECTURE.md`'s planned production topology already hosts frontend and backend on separate origins (see the production stack decision above), so dev-time connectivity should mirror that shape rather than diverge from it. A proxy would work in dev but hide the cross-origin reality, requiring CORS and an explicit base URL to be introduced later anyway once hosted — building the same plumbing twice. Deciding this now means Phase 8+ inherits an already-proven, production-shaped pattern.
 - Consequences: Any future API calls from the frontend should go through `VITE_API_BASE_URL`, not a relative path assuming same-origin. Backend routes intended for frontend consumption must remain reachable under the CORS-allowed origin; widening `CORS_ORIGIN` (e.g. for a deployed frontend URL) is an env-var change, not a code change.
+
+## Decision: Frontend–backend dev connectivity — reversed to a Vite dev proxy (single port 5173 for local dev)
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: The prior decision (above, now superseded) chose CORS + `VITE_API_BASE_URL` specifically to mirror `ARCHITECTURE.md`'s planned production topology of separate frontend/backend origins. The owner has since explicitly asked to reverse that: use only port 5173 in dev (frontend and backend combined via a proxy), instead of juggling two ports/origins.
+- Decision: Add a Vite dev-server proxy (`frontend/vite.config.ts`'s `server.proxy`) forwarding `/api` and `/health` request prefixes to `http://localhost:3001`. The frontend now fetches relative paths (e.g. `/api/db-check`) instead of an absolute `VITE_API_BASE_URL`-prefixed URL. The backend's `cors` middleware and `CORS_ORIGIN` env var are left in place, unused by this dev path but harmless.
+- Reasoning: Owner's explicit dev-convenience preference, accepting the tradeoff called out in the superseded decision. The production hosting/topology this was meant to mirror is still an open, undecided item (see `TASKS.md`'s PaaS/hosting task) — it was not yet load-bearing, so mirroring it prematurely cost more dev friction (two ports, CORS config) than it bought. If production later does end up cross-origin, CORS/base-URL plumbing can be reintroduced at that point without difficulty, since the backend's CORS support was never removed.
+- Consequences: `VITE_API_BASE_URL` is removed from `frontend/.env` and `frontend/.env.example` (dead config once fetches are relative). `frontend/src/App.tsx` now calls `fetch('/api/db-check')` directly rather than building a base-URL-prefixed request. This is a **local-dev-only** change — the backend itself, its CORS middleware, and `CORS_ORIGIN` are untouched; if a future production decision hosts frontend and backend on separate origins, this proxy-based approach does not carry over, and CORS + an explicit base URL (or an equivalent reverse-proxy setup) will need to be reintroduced for production at that time.
 
 ## Decision: UI language — English
 

@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 
 console.log('VITE_APP_NAME:', import.meta.env.VITE_APP_NAME)
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
-
 type DbCheckResponse = {
   status: string
   dbTime: string | null
@@ -14,7 +12,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${apiBaseUrl}/api/db-check`)
+    fetch('/api/db-check')
       .then((res) => {
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         return res.json() as Promise<DbCheckResponse>

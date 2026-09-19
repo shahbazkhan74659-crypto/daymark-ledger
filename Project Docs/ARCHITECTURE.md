@@ -12,8 +12,8 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## Technology Stack
 
-- **Frontend (implemented, Phases 5–6):** React 19 + Vite 8 + TypeScript, scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts`, run via npm scripts (`dev`, `build` via `tsc -b && vite build`, `preview`). Tailwind CSS v4 wired in via the `@tailwindcss/vite` plugin — CSS-first config, no `tailwind.config.js`/`postcss.config.js` (see `DECISIONS.md`). `App.tsx` fetches the backend's `/api/db-check` endpoint on mount (via `VITE_API_BASE_URL`) and renders the response; no routing or real screens yet (Phase 8+).
-- **Backend (implemented, Phases 2, 6):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). CORS enabled via the `cors` package, allow-listing the frontend origin (`CORS_ORIGIN` env var, defaults to `http://localhost:5173`) — chosen over a Vite dev proxy so the dev-time connectivity mirrors the planned production topology of separate frontend/backend origins (see `DECISIONS.md`). Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
+- **Frontend (implemented, Phases 5–6):** React 19 + Vite 8 + TypeScript, scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts`, run via npm scripts (`dev`, `build` via `tsc -b && vite build`, `preview`). Tailwind CSS v4 wired in via the `@tailwindcss/vite` plugin — CSS-first config, no `tailwind.config.js`/`postcss.config.js` (see `DECISIONS.md`). `App.tsx` fetches the backend's `/api/db-check` endpoint on mount via a relative path, proxied to the backend by `vite.config.ts`'s dev-server proxy (see `DECISIONS.md`), and renders the response; no routing or real screens yet (Phase 8+).
+- **Backend (implemented, Phases 2, 6):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). CORS is enabled via the `cors` package, allow-listing an origin (`CORS_ORIGIN` env var, defaults to `http://localhost:5173`), but is currently unused by local dev — the frontend's Vite dev-server proxy (see below and `DECISIONS.md`) makes requests same-origin from the browser's perspective, so no cross-origin request actually occurs in dev. The CORS middleware is left in place for direct/cross-origin access (e.g. non-browser clients, or a future production topology) rather than removed. Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
 - **Database (implemented, Phase 1):** PostgreSQL 18, local dev database `daymark_ledger_dev` on the native Windows service.
 - **ORM (implemented, Phases 3–4):** Prisma 7.10.0 (CLI + `@prisma/client`, pinned to matching versions), connected to Postgres via `@prisma/adapter-pg` (this Prisma version requires an explicit driver adapter — no built-in engine-binary connection). Config lives in `prisma7.config.ts` (not `schema.prisma`'s `env()`, per this version's setup) and is auto-discovered by the CLI despite its non-default filename. `backend/package.json`'s `prisma:validate`/`prisma:format`/`prisma:generate`/`prisma:migrate:status`/`prisma:studio` npm scripts wrap the CLI (each pinned to `--config prisma7.config.ts` for self-documentation) and are all confirmed working end-to-end against `daymark_ledger_dev`. Schema still has zero models (see `PHASES.md` Phase 7).
 - **Auth:** Database-backed sessions (hashed session ID) + bcrypt-hashed account password — planned, not yet implemented (see `PHASES.md` Phase 7).
@@ -44,13 +44,13 @@ backend/
 frontend/
   src/
     main.tsx                — React root bootstrap
-    App.tsx                 — fetches GET /api/db-check on mount (via VITE_API_BASE_URL) and renders the result; logs VITE_APP_NAME to console
+    App.tsx                 — fetches GET /api/db-check on mount via a relative path (proxied to the backend by vite.config.ts) and renders the result; logs VITE_APP_NAME to console
     index.css                — @import "tailwindcss" (Tailwind v4 entry point)
   public/
     favicon.svg
   index.html
-  vite.config.ts            — @vitejs/plugin-react + @tailwindcss/vite
-  .env                      — local env vars incl. VITE_APP_NAME, VITE_API_BASE_URL (gitignored)
+  vite.config.ts            — @vitejs/plugin-react + @tailwindcss/vite; server.proxy forwards /api and /health to http://localhost:3001 (see DECISIONS.md)
+  .env                      — local env vars incl. VITE_APP_NAME (gitignored)
   .env.example              — committed template
   package.json
   tsconfig.json / tsconfig.app.json / tsconfig.node.json
