@@ -1,37 +1,28 @@
-import { useEffect, useState } from 'react'
-
-console.log('VITE_APP_NAME:', import.meta.env.VITE_APP_NAME)
-
-type DbCheckResponse = {
-  status: string
-  dbTime: string | null
-}
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HomePlaceholder } from "./components/HomePlaceholder";
+import { LoginScreen } from "./components/LoginScreen";
+import { RequireAuth } from "./components/RequireAuth";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
-  const [data, setData] = useState<DbCheckResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/db-check')
-      .then((res) => {
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`)
-        return res.json() as Promise<DbCheckResponse>
-      })
-      .then(setData)
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
-  }, [])
-
   return (
-    <div className="min-h-screen w-full bg-white p-4">
-      {error && <p>Error: {error}</p>}
-      {!error && !data && <p>Loading...</p>}
-      {data && (
-        <p>
-          Backend status: {data.status} — DB time: {data.dbTime}
-        </p>
-      )}
-    </div>
-  )
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginScreen />} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <HomePlaceholder />
+              </RequireAuth>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

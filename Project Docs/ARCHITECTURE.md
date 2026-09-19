@@ -4,7 +4,7 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## System Overview
 
-**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`), an Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a `GET /health` liveness endpoint, a `GET /api/db-check` endpoint (Phase 6) proving DB connectivity via a raw Prisma query, and a real auth backend (Phase 7): `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, and session-verification middleware, backed by Prisma's first real migration (`User`/`Session` models). Prisma (CLI + Client, see Phases 3–4, 7 in `PHASES.md`) is installed, connected to that database via a Postgres driver adapter, with its CLI tooling (`generate`/`validate`/`format`/`migrate dev`/`migrate status`/`studio`/`seed`) fully verified via `backend/package.json`'s `prisma:*` scripts. A scaffolded React 19 + Vite 8 + TypeScript + Tailwind CSS v4 frontend (`frontend/`, see Phase 5 in `PHASES.md`) fetches `/api/db-check` on load and renders the result (Phase 6) — the full frontend → backend → database → backend → frontend round trip is proven working; no routing, login screen, or real business screens exist in the frontend yet (Phase 8+). The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below).
+**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`), an Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a `GET /health` liveness endpoint, a `GET /api/db-check` endpoint (Phase 6) proving DB connectivity via a raw Prisma query, and a real auth backend (Phase 7): `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, and session-verification middleware, backed by Prisma's first real migration (`User`/`Session` models). Prisma (CLI + Client, see Phases 3–4, 7 in `PHASES.md`) is installed, connected to that database via a Postgres driver adapter, with its CLI tooling (`generate`/`validate`/`format`/`migrate dev`/`migrate status`/`studio`/`seed`) fully verified via `backend/package.json`'s `prisma:*` scripts. A React 19 + Vite 8 + TypeScript + Tailwind CSS v4 frontend (`frontend/`, see Phase 5 in `PHASES.md`) now has a real, working login screen wired to the Phase 7 backend, `react-router-dom`-based routing, and a Context-based auth state (Phase 8) — the full frontend → backend → database → backend → frontend round trip (Phase 6) is proven, and now gated behind real authentication end-to-end. No worker/business screens exist in the frontend yet (Phase 9+). The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below).
 
 **Prototype (2026-09-18, not production code):** An interactive, non-functional UI prototype — a mobile view (390×844), built as a Claude Artifact (Design Component format, `<x-dc>`/`DCLogic`, not React/Vite) — lives at `Prototype/project/Main.dc.html` in this repo, with the live/editable version linked from `Prototype/README.md`. It uses in-memory sample data only (no backend, no persistence) and exists purely to validate the UX before real implementation. Screens covered: Worker List (home, with inline today-status change), Worker Detail (attendance calendar, salary config, salary/advance totals, advance history), a floating quick-actions menu, Manage Employees List, Manage Employee Edit (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder "coming soon" screens for Reporting and Settings (not yet designed — see `TASKS.md`). This prototype's screen/data shape should inform, but does not replace, the real Prisma schema and API design once implementation starts.
 
@@ -12,7 +12,7 @@ This describes the **actual current implementation** — a local Postgres databa
 
 ## Technology Stack
 
-- **Frontend (implemented, Phases 5–6):** React 19 + Vite 8 + TypeScript, scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts`, run via npm scripts (`dev`, `build` via `tsc -b && vite build`, `preview`). Tailwind CSS v4 wired in via the `@tailwindcss/vite` plugin — CSS-first config, no `tailwind.config.js`/`postcss.config.js` (see `DECISIONS.md`). `App.tsx` fetches the backend's `/api/db-check` endpoint on mount via a relative path, proxied to the backend by `vite.config.ts`'s dev-server proxy (see `DECISIONS.md`), and renders the response; no routing or real screens yet (Phase 8+).
+- **Frontend (implemented, Phases 5–6, 8):** React 19 + Vite 8 + TypeScript, scaffolded at `frontend/` via `npm create vite@latest frontend -- --template react-ts`, run via npm scripts (`dev`, `build` via `tsc -b && vite build`, `preview`). Tailwind CSS v4 wired in via the `@tailwindcss/vite` plugin — CSS-first config, no `tailwind.config.js`/`postcss.config.js` (see `DECISIONS.md`); a `@theme` block in `index.css` carries the app-wide brand tokens (teal primary, warm stone neutrals, Manrope font — matching the prototype, used by `HomePlaceholder`) plus a second, screen-scoped set of navy tokens (`--color-login-header-start/-end`, `--color-login-accent`) used only by `LoginScreen`, whose visual design was rebuilt to match an owner-supplied mobile mockup rather than the app-wide prototype brand (see Phase 8's note in `PHASES.md`). `react-router-dom` provides routing (`/login`, `/`), and a Context-based `AuthProvider` (see "Authentication & Authorization" below) tracks session state, checking `GET /api/auth/me` once on mount. `App.tsx`'s Phase 6 `/api/db-check` demo fetch has been removed (superseded by the real login flow).
 - **Backend (implemented, Phases 2, 6):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). CORS is enabled via the `cors` package, allow-listing an origin (`CORS_ORIGIN` env var, defaults to `http://localhost:5173`), but is currently unused by local dev — the frontend's Vite dev-server proxy (see below and `DECISIONS.md`) makes requests same-origin from the browser's perspective, so no cross-origin request actually occurs in dev. The CORS middleware is left in place for direct/cross-origin access (e.g. non-browser clients, or a future production topology) rather than removed. Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
 - **Database (implemented, Phase 1):** PostgreSQL 18, local dev database `daymark_ledger_dev` on the native Windows service.
 - **ORM (implemented, Phases 3–4, 7):** Prisma 7.10.0 (CLI + `@prisma/client`, pinned to matching versions), connected to Postgres via `@prisma/adapter-pg` (this Prisma version requires an explicit driver adapter — no built-in engine-binary connection). Config lives in `prisma7.config.ts` (not `schema.prisma`'s `env()`, per this version's setup) and is auto-discovered by the CLI despite its non-default filename. `backend/package.json`'s `prisma:validate`/`prisma:format`/`prisma:generate`/`prisma:migrate:dev`/`prisma:migrate:status`/`prisma:studio`/`prisma:seed` npm scripts wrap the CLI (each pinned to `--config prisma7.config.ts` for self-documentation) and are all confirmed working end-to-end against `daymark_ledger_dev`. Schema now has its first models, `User`/`Session` (see `PHASES.md` Phase 7).
@@ -47,16 +47,24 @@ backend/
   tsconfig.json
 ```
 
-`frontend/` layout as scaffolded (Phases 5–6):
+`frontend/` layout (as of Phase 8):
 ```text
 frontend/
   src/
     main.tsx                — React root bootstrap
-    App.tsx                 — fetches GET /api/db-check on mount via a relative path (proxied to the backend by vite.config.ts) and renders the result; logs VITE_APP_NAME to console
-    index.css                — @import "tailwindcss" (Tailwind v4 entry point)
+    App.tsx                 — wraps AuthProvider + BrowserRouter; defines /login and / (guarded by RequireAuth) routes
+    context/
+      AuthContext.tsx         — AuthProvider + useAuth(): checks GET /api/auth/me on mount, exposes login()/logout()
+    components/
+      LoginScreen.tsx          — AJAX-submitted username/password form (navy curved-header mobile design, see Phase 8's note in PHASES.md), calls useAuth().login()
+      HomePlaceholder.tsx      — placeholder post-login screen ("Logged in as {username}" + logout) — not the real home screen (Phase 10)
+      RequireAuth.tsx          — route guard: redirects to /login when unauthenticated
+    lib/
+      api.ts                   — shared fetch wrapper (getJson/postJson), credentials: "include", parses the {status, message} envelope
+    index.css                — @import "tailwindcss" (Tailwind v4 entry point) + a @theme block with app-wide brand tokens and LoginScreen-scoped navy tokens
   public/
-    favicon.svg
-  index.html
+    logo.png                 — the app's real logo (transparent PNG); also used as the favicon
+  index.html                — favicon points at /logo.png; includes the Manrope Google Font link
   vite.config.ts            — @vitejs/plugin-react + @tailwindcss/vite; server.proxy forwards /api and /health to http://localhost:3001 (see DECISIONS.md)
   .env                      — local env vars incl. VITE_APP_NAME (gitignored)
   .env.example              — committed template
@@ -66,9 +74,9 @@ frontend/
 
 ## Component Structure
 
-**Planned, not yet implemented** (screen breakdown validated by the prototype — see "Prototype" above):
-- A login screen.
-- A home screen listing all workers by full name and today's attendance status, with status changeable inline from the list.
+**Login screen implemented (Phase 8); remaining screens planned** (breakdown validated by the prototype — see "Prototype" above):
+- ~~A login screen.~~ Implemented — `LoginScreen` + `AuthContext`/`RequireAuth` (Phase 8). No prototype reference existed for it; its current visual design follows an owner-supplied mobile mockup (navy curved header, underline fields, pill button) rather than the prototype's teal brand tokens — see Technology Stack above and Phase 8's note in `PHASES.md`.
+- A home screen listing all workers by full name and today's attendance status, with status changeable inline from the list. (A non-functional placeholder, `HomePlaceholder`, exists post-login for now — see Phase 8's completion note in `PHASES.md`.)
 - A worker module per worker (opened by tapping their name from the home list), containing: a personal/employment-info section (with document and photo upload), a monthly attendance calendar, and a salary-configuration/calculation section.
 - A monthly calendar component per worker, color-coded per day (Green = Present, Yellow = Half day, Red = Absent), with per-status counts shown below it, and every day tappable/editable regardless of date.
 - A day-tap popup for setting a day's attendance status, containing an "Advance Salary" checkbox that reveals a ₹-prefixed amount input when checked.
@@ -83,11 +91,11 @@ frontend/
 
 ## State Management
 
-**Not yet decided.**
+**Decided (Phase 8), scoped to auth so far:** React Context (`AuthContext`/`AuthProvider`, `frontend/src/context/AuthContext.tsx`) holds auth/session state (`status`, `user`) app-wide, with a `useAuth()` hook for consumers. No broader app-wide state-management library (Redux, Zustand, TanStack Query, etc.) has been introduced — revisit only if a concrete need arises once real data-fetching screens (Phase 9+) are built.
 
 ## Routing
 
-**Not yet decided.**
+**Decided (Phase 8):** `react-router-dom`, chosen now (rather than deferred) since this is the first phase needing to switch between screens. Two routes exist so far: `/login` (`LoginScreen`) and `/` (`HomePlaceholder`, wrapped in `RequireAuth`). Future phases are expected to add routes under this same router rather than introducing a different routing approach.
 
 ## API Architecture
 
@@ -99,7 +107,7 @@ frontend/
 
 ## Authentication & Authorization
 
-**Implemented (Phase 7):** A single admin account, seeded via `backend/prisma/seed.ts` from `ADMIN_USERNAME`/`ADMIN_PASSWORD` env vars (no hardcoded credentials). `POST /api/auth/login` checks the submitted password against the bcrypt hash (cost factor 12) stored on `User.passwordHash`; on success, a random 32-byte session token is generated, its SHA-256 hash + a 30-day `expiresAt` are stored on a new `Session` row (never the raw token — satisfies the "hashed before storage" requirement), and the raw token is set as an httpOnly cookie (`sameSite: lax`, `secure` in production only) for the client to hold. `GET /api/auth/me`, behind the `requireSession` middleware, hashes the incoming cookie token and looks it up against `Session` to authenticate a request. `POST /api/auth/logout` deletes the matching `Session` row and clears the cookie. This is deliberately not a stateless JWT approach — a database-backed session allows the session to be revoked/invalidated server-side at any time (e.g. logout deletes the row immediately). No worker-facing accounts, no multi-admin support, no OAuth/social login. Not yet built: the frontend login screen (Phase 8) and applying `requireSession` to future business routes (Phase 9+).
+**Implemented (Phase 7):** A single admin account, seeded via `backend/prisma/seed.ts` from `ADMIN_USERNAME`/`ADMIN_PASSWORD` env vars (no hardcoded credentials). `POST /api/auth/login` checks the submitted password against the bcrypt hash (cost factor 12) stored on `User.passwordHash`; on success, a random 32-byte session token is generated, its SHA-256 hash + a 30-day `expiresAt` are stored on a new `Session` row (never the raw token — satisfies the "hashed before storage" requirement), and the raw token is set as an httpOnly cookie (`sameSite: lax`, `secure` in production only) for the client to hold. `GET /api/auth/me`, behind the `requireSession` middleware, hashes the incoming cookie token and looks it up against `Session` to authenticate a request. `POST /api/auth/logout` deletes the matching `Session` row and clears the cookie. This is deliberately not a stateless JWT approach — a database-backed session allows the session to be revoked/invalidated server-side at any time (e.g. logout deletes the row immediately). No worker-facing accounts, no multi-admin support, no OAuth/social login. **Frontend (Phase 8):** `AuthContext`/`AuthProvider` checks `GET /api/auth/me` once on mount (so a page reload doesn't force re-login within the 30-day session), and `LoginScreen`/`HomePlaceholder` call `login()`/`logout()` against the Phase 7 endpoints; `RequireAuth` gates the placeholder home route. Not yet built: applying `requireSession` to future business routes (Phase 9+).
 
 ## External Integrations
 

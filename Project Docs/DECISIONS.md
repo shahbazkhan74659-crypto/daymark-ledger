@@ -145,6 +145,18 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: These are the standard defaults for each mechanism (bcrypt cost 12 balances hashing cost vs. login latency; SHA-256 is sufficient for hashing an already-high-entropy random token, unlike a low-entropy password) plus the owner's explicit choice of a long-lived session for convenience.
 - Consequences: Changing the bcrypt cost factor later would not invalidate the already-hashed admin password (bcrypt hashes are self-describing), but changing the session-token hashing algorithm would invalidate all existing sessions (forcing re-login) since `Session.hashedToken` lookups are exact-match. The 30-day cookie lifetime should be revisited if the app is ever used on a shared/public device.
 
+## Decision: Frontend routing and auth state — `react-router-dom` + React Context
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 8 (Building the Frontend Login Screen, see `PHASES.md`) was the first phase requiring the frontend to switch between more than one screen (a login screen and a placeholder authenticated area), and to track whether the admin is currently logged in. `ARCHITECTURE.md` had both "Routing" and "State Management" flagged as not yet decided. Two open questions: (1) introduce a routing library now, or defer until a phase with real multi-screen navigation (e.g. Phase 10's home → worker detail) needs it; (2) how to track/share auth/session state across components.
+- Decision:
+  - **Routing:** `react-router-dom`, added now rather than deferred — owner's explicit choice, given while reviewing the Phase 8 plan.
+  - **Auth state:** a React Context (`AuthContext`/`AuthProvider`) is the single source of truth for session state app-wide, exposing `status`/`user`/`login()`/`logout()` via a `useAuth()` hook. It checks `GET /api/auth/me` once on mount so the 30-day session cookie actually keeps the admin logged in across page reloads, not just within a single page load.
+  - No broader state-management library (Redux, Zustand, TanStack Query, etc.) was introduced — Context is scoped to auth only for now.
+- Reasoning: Deciding routing now means every subsequent frontend phase builds on one established pattern instead of retrofitting a router later. React Context is sufficient for a single global concern (auth) with a small, single-admin app — no need for a heavier state library until a concrete data-fetching/caching need arises.
+- Consequences: Future screens (Phase 9+) should add routes under the same `react-router-dom` router rather than introducing a different routing approach, and should reuse `useAuth()` for any auth-dependent behavior rather than re-checking `/api/auth/me` independently. Revisit the "no broader state library" choice only if a concrete need (e.g. shared server-data caching across screens) arises.
+
 ## Decision: UI language — English
 
 - Status: Accepted
