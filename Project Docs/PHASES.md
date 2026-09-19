@@ -65,7 +65,7 @@ Scaffold the `schema.prisma` file (datasource, generator blocks), confirm `prism
 ### Completion Criteria
 Prisma's CLI tooling and Client generation work end-to-end against the Phase 1 database from the backend project. No tables, models, or migrations exist yet.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Added `prisma:validate`/`prisma:format`/`prisma:generate`/`prisma:migrate:status`/`prisma:studio` npm scripts to `backend/package.json`, each pinned to `--config prisma7.config.ts` for self-documentation (the CLI was confirmed to already auto-discover `prisma7.config.ts` with zero flags — `Loaded Prisma config from prisma7.config.ts.` appears on every invocation regardless). `prisma validate` and `prisma format` both ran clean against the bare schema (format was a no-op). `prisma generate` regenerated `src/generated/prisma` successfully. `prisma migrate status` connected to `daymark_ledger_dev` and correctly reported the database as not yet managed by Prisma Migrate (exit code 1 — the CLI's expected signal for a DB with zero migration history, not a connectivity failure; no `migrate dev`/`migrate reset` was run, so no migration files were created). `prisma studio` was started, confirmed serving over HTTP, then stopped. Prisma Client + `@prisma/adapter-pg` compiling and connecting cleanly was reverified via a throwaway `backend/src/verify-phase4.ts` script (`npm run build` + `node dist/verify-phase4.js`), then deleted with no leftover `dist/` artifacts. Schema still has zero models; `prisma/migrations` still does not exist.
 
 ## Phase 5 — Creating Frontend Server
 
