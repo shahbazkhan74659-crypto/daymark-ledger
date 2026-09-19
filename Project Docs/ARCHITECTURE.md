@@ -1,10 +1,10 @@
 # Architecture
 
-This describes the **actual current implementation** — which is nothing; no code has been written yet — followed by the **planned** architecture per the chosen production stack. See `DECISIONS.md` for the reasoning behind decisions already made, and `TASKS.md` for what's still open.
+This describes the **actual current implementation** — a local Postgres database and a bare Express/TypeScript backend scaffold, per Phases 1–2 — followed by the **planned** architecture per the chosen production stack for everything not yet built. See `DECISIONS.md` for the reasoning behind decisions already made, and `TASKS.md` for what's still open.
 
 ## System Overview
 
-**Implemented:** No production code. The repository contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below) — no framework, backend, or database exists yet.
+**Implemented:** A local PostgreSQL 18 database (`daymark_ledger_dev`, see Phase 1 in `PHASES.md`) and a scaffolded Express 5 + TypeScript backend (`backend/`, see Phase 2 in `PHASES.md`) with a single `GET /health` endpoint — no database connection, ORM, auth, or business-logic routes yet. The repository also contains this `Project Docs/` documentation system and a `Prototype/` folder (see "Prototype" below). No frontend exists yet.
 
 **Prototype (2026-09-18, not production code):** An interactive, non-functional UI prototype — a mobile view (390×844), built as a Claude Artifact (Design Component format, `<x-dc>`/`DCLogic`, not React/Vite) — lives at `Prototype/project/Main.dc.html` in this repo, with the live/editable version linked from `Prototype/README.md`. It uses in-memory sample data only (no backend, no persistence) and exists purely to validate the UX before real implementation. Screens covered: Worker List (home, with inline today-status change), Worker Detail (attendance calendar, salary config, salary/advance totals, advance history), a floating quick-actions menu, Manage Employees List, Manage Employee Edit (Active/Inactive toggle, personal-info edit, document add/remove), Create New Employee, and placeholder "coming soon" screens for Reporting and Settings (not yet designed — see `TASKS.md`). This prototype's screen/data shape should inform, but does not replace, the real Prisma schema and API design once implementation starts.
 
@@ -12,17 +12,27 @@ This describes the **actual current implementation** — which is nothing; no co
 
 ## Technology Stack
 
-**Planned (decided 2026-09-18, not yet implemented):**
-- **Frontend:** React + Vite + TypeScript + Tailwind CSS.
-- **Backend:** Node.js + Express + TypeScript, exposing a REST API. Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
-- **Database:** PostgreSQL 18.
-- **ORM:** Prisma.
-- **Auth:** Database-backed sessions (hashed session ID) + bcrypt-hashed account password.
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS — planned, not yet implemented (see `TASKS.md`/`PHASES.md` Phase 5).
+- **Backend (implemented, Phase 2):** Node.js + **Express 5** + TypeScript, exposing a REST API, run via npm scripts (`dev` via `tsx watch`, `build` via `tsc`, `start` via compiled `dist/`). Next.js is explicitly not part of the default stack — see `DECISIONS.md` for the condition under which it could be introduced later.
+- **Database (implemented, Phase 1):** PostgreSQL 18, local dev database `daymark_ledger_dev` on the native Windows service.
+- **ORM:** Prisma — planned, not yet implemented (see `PHASES.md` Phase 3/4).
+- **Auth:** Database-backed sessions (hashed session ID) + bcrypt-hashed account password — planned, not yet implemented (see `PHASES.md` Phase 7).
 - **Hosting/PaaS:** Not yet chosen — see `TASKS.md`.
 
 ## Application Structure
 
-**Not yet decided in detail.** No project scaffolding exists. Implied by the chosen stack: a separate frontend app (React/Vite) and backend app (Express), communicating over a REST API — likely two top-level directories (e.g. `frontend/`, `backend/`) in this same repository, but the exact monorepo-vs-separate-repos layout hasn't been decided.
+**Monorepo** (single git repo, resolved by Phase 2): top-level `backend/` (Express + TypeScript, scaffolded) and a future `frontend/` (React/Vite, Phase 5) directory, communicating over a REST API. No npm workspaces/build-orchestration tool (e.g. Turborepo) yet — each app has its own standalone `package.json`; revisit only if a concrete cross-package sharing need arises.
+
+`backend/` layout as scaffolded:
+```text
+backend/
+  src/
+    index.ts        — Express app bootstrap, GET /health
+  .env               — local env vars (gitignored)
+  .env.example       — committed template (PORT)
+  package.json
+  tsconfig.json
+```
 
 ## Component Structure
 
@@ -67,7 +77,7 @@ None planned.
 
 ## Build & Runtime
 
-**Not yet decided in detail.** Implied by the stack: Vite builds the frontend; the Express backend runs as a Node process; Prisma manages database migrations against PostgreSQL. Exact scripts/dev workflow not yet set up — no project scaffolding exists yet.
+**Backend (implemented, Phase 2):** `npm run dev` (`tsx watch src/index.ts`) for local development; `npm run build` (`tsc` to `dist/`) + `npm start` (`node dist/index.js`) for a compiled run — both verified working. **Frontend:** not yet decided in detail — Vite will build it once scaffolded (Phase 5). **Database:** Prisma will manage migrations against PostgreSQL once introduced (Phase 3/4) — no migrations exist yet.
 
 ## Architectural Boundaries
 

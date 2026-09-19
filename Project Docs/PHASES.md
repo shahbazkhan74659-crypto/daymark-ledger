@@ -39,7 +39,7 @@ Project scaffolding only: initialize the Express + TypeScript project, set up fo
 ### Completion Criteria
 The backend project runs locally via its dev script and a health-check endpoint responds successfully. No database connection, no Prisma, and no business-logic routes exist yet.
 
-**Status: Not started.**
+**Status: Complete** — 2026-09-19. Scaffolded at `backend/` (npm, Express 5, TypeScript, `tsx` for dev). `GET /health` returns `{"status":"ok"}`, verified via both `npm run dev` and the compiled `npm run build && npm start` path. See `ARCHITECTURE.md` for the resulting structure.
 
 ## Phase 3 — Connecting Backend and Local Database
 

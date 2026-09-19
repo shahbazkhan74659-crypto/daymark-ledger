@@ -15,7 +15,6 @@ Open items carried over from the discussion phase, not yet decided or scoped int
 - Decide Settings' actual scope (what it shows/does) — the owner has deferred this to when Phase 19 (Settings Panel Frontend) starts, per `PHASES.md`; likely candidate is admin credential management, but not confirmed. Built frontend-first deliberately, with Phase 20 (Settings Panel Backend) following once the frontend clarifies what's needed.
 - Decide whether overtime, bonuses, or deductions beyond attendance/advance are in scope.
 - Decide the document/photo upload storage mechanism (local filesystem vs. cloud storage) — surfaced as a prerequisite for Phase 9's Worker document/photo fields, not yet decided.
-- [Phase 2] Scaffold the Node/Express + TypeScript backend project (folder structure, TS/build config, env-var handling) with a basic health-check endpoint — no DB/Prisma connection yet (see `PHASES.md`; starts once Phase 1 is complete).
 - [Phase 3] Install Prisma in the backend and verify Prisma Client connects to the Phase 1 database — no schema yet (see `PHASES.md`; starts once Phase 2 is complete).
 - [Phase 4] Scaffold `schema.prisma` and confirm Prisma CLI/Client tooling works against the Phase 1 database — no real tables/models yet (see `PHASES.md`; starts once Phase 3 is complete).
 - [Phase 5] Scaffold the React + Vite + TypeScript + Tailwind frontend project and confirm its dev server runs and serves a page — no backend connection or real screens yet (see `PHASES.md`; starts once Phase 4 is complete).
@@ -44,6 +43,7 @@ None.
 
 ## Completed
 
+- [x] [Phase 2] Scaffolded the Node/Express 5 + TypeScript backend project at `backend/` (folder structure, `tsconfig.json`, npm scripts for dev/build/start, `.env`/`.env.example` for `PORT`) with a working `GET /health` endpoint — verified via both `npm run dev` and `npm run build && npm start`; no DB/Prisma connection yet — 2026-09-19 (see `PHASES.md`, `ARCHITECTURE.md`)
 - [x] [Phase 1] Confirmed the local PostgreSQL 18 server (`postgresql-x64-18` Windows service) is installed, running, and set to Automatic startup — 2026-09-19 (see `PHASES.md`, `DECISIONS.md`)
 - [x] [Phase 1] Decided the dev connection approach: use the existing native Windows PostgreSQL 18 service directly, not Docker — 2026-09-19 (see `DECISIONS.md`)
 - [x] [Phase 1] Created the empty development database `daymark_ledger_dev` — 2026-09-19
