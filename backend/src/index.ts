@@ -4,6 +4,7 @@ import cors from "cors";
 import express from "express";
 import { prisma } from "./db.js";
 import { authRouter } from "./routes/auth.js";
+import { workersRouter } from "./routes/workers.js";
 
 const app = express();
 const port = process.env.PORT ?? 3001;
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
+app.use("/api/workers", workersRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

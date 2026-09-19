@@ -29,3 +29,40 @@ model Session {
   expiresAt   DateTime
   createdAt   DateTime @default(now())
 }
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  HALF
+  ABSENT
+}
+
+model Worker {
+  id          String       @id @default(cuid())
+  fullName    String
+  designation String
+  contact     String
+  joiningDate DateTime     @db.Date
+  perDayRate  Decimal      @db.Decimal(10, 2)
+  status      WorkerStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attendances Attendance[]
+}
+
+model Attendance {
+  id        String           @id @default(cuid())
+  workerId  String
+  worker    Worker           @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  date      DateTime         @db.Date
+  status    AttendanceStatus
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([workerId, date])
+  @@index([date])
+}

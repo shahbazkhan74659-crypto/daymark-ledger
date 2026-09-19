@@ -14,6 +14,16 @@
   --color-login-header-start: #4a61a8;
   --color-login-header-end: #1e4c89;
   --color-login-accent: #1e4c89;
+
+  /* Attendance status colors (Present/Half/Absent) — app-wide, matches the UI prototype */
+  --color-status-present-bg: #86efac;
+  --color-status-present-fg: #14532d;
+  --color-status-half-bg: #fde68a;
+  --color-status-half-fg: #78350f;
+  --color-status-absent-bg: #fca5a5;
+  --color-status-absent-fg: #7f1d1d;
+  --color-status-neutral-fg: #a8a29e;
+  --color-status-neutral-border: #d6d3d1;
 }
 
 html,

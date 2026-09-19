@@ -1,7 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { HomePlaceholder } from "./components/HomePlaceholder";
+import { HomeScreen } from "./components/HomeScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { RequireAuth } from "./components/RequireAuth";
+import { WorkerDetailStub } from "./components/WorkerDetailStub";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -14,7 +15,15 @@ function App() {
             path="/"
             element={
               <RequireAuth>
-                <HomePlaceholder />
+                <HomeScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/workers/:id"
+            element={
+              <RequireAuth>
+                <WorkerDetailStub />
               </RequireAuth>
             }
           />

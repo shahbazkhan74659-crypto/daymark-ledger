@@ -157,6 +157,15 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: Deciding routing now means every subsequent frontend phase builds on one established pattern instead of retrofitting a router later. React Context is sufficient for a single global concern (auth) with a small, single-admin app — no need for a heavier state library until a concrete data-fetching/caching need arises.
 - Consequences: Future screens (Phase 9+) should add routes under the same `react-router-dom` router rather than introducing a different routing approach, and should reuse `useAuth()` for any auth-dependent behavior rather than re-checking `/api/auth/me` independently. Revisit the "no broader state library" choice only if a concrete need (e.g. shared server-data caching across screens) arises.
 
+## Decision: Domain status fields use Prisma enums, not free-text strings
+
+- Status: Accepted
+- Date: 2026-09-19
+- Context: Phase 9 (Home Screen Backend, see `PHASES.md`) introduced the project's first domain models (`Worker`, `Attendance`) and needed a representation for `Worker.status` (Active/Inactive) and `Attendance.status` (Present/Half/Absent). No validation library (e.g. zod) exists in the backend — `auth.ts`'s existing convention is manual `typeof`/allowlist checks inline in route handlers. Two options: a free-text `String` column validated only at the application layer, or a Postgres-native Prisma `enum`.
+- Decision: Use Prisma enums (`WorkerStatus`, `AttendanceStatus`) for both fields, giving DB-level constraint enforcement in addition to the existing manual request-body validation.
+- Reasoning: Both domains are genuinely fixed and stable — the half-day rule in this file depends on `HALF` remaining a known, exact value — and a DB-native enum catches bad data at the schema level for free, without adding a new dependency (unlike introducing zod solely for this). The trade-off (adding a new status value later requires a migration) was judged acceptable since this project's statuses are specification-locked, not expected to grow ad hoc.
+- Consequences: Future domain models with a similarly fixed status/category field (e.g. any status the Advance model or later phases introduce) should default to a Prisma enum following this same pattern, rather than mixing free-text and enum representations across the schema. Introducing a validation library (zod etc.) remains an open option for request-body validation generally, but is not required by this decision.
+
 ## Decision: UI language — English
 
 - Status: Accepted
