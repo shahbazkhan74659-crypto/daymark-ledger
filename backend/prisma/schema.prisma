@@ -42,17 +42,18 @@ enum AttendanceStatus {
 }
 
 model Worker {
-  id          String       @id @default(cuid())
+  id          String           @id @default(cuid())
   fullName    String
   designation String
   contact     String
-  joiningDate DateTime     @db.Date
-  perDayRate  Decimal      @db.Decimal(10, 2)
-  status      WorkerStatus @default(ACTIVE)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  joiningDate DateTime         @db.Date
+  perDayRate  Decimal          @db.Decimal(10, 2)
+  status      WorkerStatus     @default(ACTIVE)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   attendances Attendance[]
   advances    Advance[]
+  documents   WorkerDocument[]
 }
 
 model Attendance {
@@ -79,4 +80,17 @@ model Advance {
 
   @@unique([workerId, date])
   @@index([date])
+}
+
+model WorkerDocument {
+  id           String   @id @default(cuid())
+  workerId     String
+  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  originalName String
+  storedName   String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
+
+  @@index([workerId])
 }

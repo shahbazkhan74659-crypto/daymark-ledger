@@ -111,6 +111,27 @@ workersRouter.post("/", requireSession, async (req, res) => {
   }
 });
 
+workersRouter.get("/all", requireSession, async (_req, res) => {
+  try {
+    const workers = await prisma.worker.findMany({
+      orderBy: { fullName: "asc" },
+    });
+
+    res.json({
+      status: "ok",
+      workers: workers.map((worker) => ({
+        id: worker.id,
+        fullName: worker.fullName,
+        designation: worker.designation,
+        status: worker.status,
+      })),
+    });
+  } catch (error) {
+    console.error("Listing all workers failed:", error);
+    res.status(500).json({ status: "error", message: "Failed to list workers" });
+  }
+});
+
 workersRouter.get("/:id", requireSession, async (req, res) => {
   const id = String(req.params.id);
 
@@ -127,6 +148,8 @@ workersRouter.get("/:id", requireSession, async (req, res) => {
         id: worker.id,
         fullName: worker.fullName,
         designation: worker.designation,
+        contact: worker.contact,
+        joiningDate: dateOnlyToString(worker.joiningDate),
         perDayRate: Number(worker.perDayRate),
         status: worker.status,
       },
@@ -134,6 +157,92 @@ workersRouter.get("/:id", requireSession, async (req, res) => {
   } catch (error) {
     console.error("Fetching worker failed:", error);
     res.status(500).json({ status: "error", message: "Failed to fetch worker" });
+  }
+});
+
+workersRouter.post("/:id", requireSession, async (req, res) => {
+  const id = String(req.params.id);
+  const { fullName, designation, contact, joiningDate: joiningDateInput } = req.body ?? {};
+
+  if (!isNonEmptyString(fullName)) {
+    res.status(400).json({ status: "error", message: "fullName must be a non-empty string" });
+    return;
+  }
+
+  if (!isNonEmptyString(designation)) {
+    res.status(400).json({ status: "error", message: "designation must be a non-empty string" });
+    return;
+  }
+
+  if (!isNonEmptyString(contact)) {
+    res.status(400).json({ status: "error", message: "contact must be a non-empty string" });
+    return;
+  }
+
+  const joiningDate = typeof joiningDateInput === "string" ? parseDateOnly(joiningDateInput) : null;
+  if (!joiningDate) {
+    res.status(400).json({ status: "error", message: "joiningDate must be in YYYY-MM-DD format" });
+    return;
+  }
+
+  try {
+    const worker = await prisma.worker.findUnique({ where: { id } });
+    if (!worker) {
+      res.status(404).json({ status: "error", message: "Worker not found" });
+      return;
+    }
+
+    const updated = await prisma.worker.update({
+      where: { id },
+      data: { fullName, designation, contact, joiningDate },
+    });
+
+    res.json({
+      status: "ok",
+      worker: {
+        id: updated.id,
+        fullName: updated.fullName,
+        designation: updated.designation,
+        contact: updated.contact,
+        joiningDate: dateOnlyToString(updated.joiningDate),
+        perDayRate: Number(updated.perDayRate),
+        status: updated.status,
+      },
+    });
+  } catch (error) {
+    console.error("Updating worker failed:", error);
+    res.status(500).json({ status: "error", message: "Failed to update worker" });
+  }
+});
+
+const WORKER_STATUSES = ["ACTIVE", "INACTIVE"] as const;
+type WorkerStatusInput = (typeof WORKER_STATUSES)[number];
+
+function isWorkerStatus(value: unknown): value is WorkerStatusInput {
+  return typeof value === "string" && (WORKER_STATUSES as readonly string[]).includes(value);
+}
+
+workersRouter.post("/:id/status", requireSession, async (req, res) => {
+  const id = String(req.params.id);
+  const { status } = req.body ?? {};
+
+  if (!isWorkerStatus(status)) {
+    res.status(400).json({ status: "error", message: "status must be ACTIVE or INACTIVE" });
+    return;
+  }
+
+  try {
+    const worker = await prisma.worker.findUnique({ where: { id } });
+    if (!worker) {
+      res.status(404).json({ status: "error", message: "Worker not found" });
+      return;
+    }
+
+    const updated = await prisma.worker.update({ where: { id }, data: { status } });
+    res.json({ status: "ok", worker: { id: updated.id, status: updated.status } });
+  } catch (error) {
+    console.error("Updating worker status failed:", error);
+    res.status(500).json({ status: "error", message: "Failed to update worker status" });
   }
 });
 
