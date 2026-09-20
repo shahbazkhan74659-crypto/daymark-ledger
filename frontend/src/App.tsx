@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { CreateEmployeeScreen } from "./components/CreateEmployeeScreen";
 import { HomeScreen } from "./components/HomeScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { RequireAuth } from "./components/RequireAuth";
@@ -16,6 +17,14 @@ function App() {
             element={
               <RequireAuth>
                 <HomeScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/workers/new"
+            element={
+              <RequireAuth>
+                <CreateEmployeeScreen />
               </RequireAuth>
             }
           />

@@ -23,7 +23,7 @@ export function StatusPill({
       onClick={onClick}
       aria-label={`Mark ${meta.label === "P" ? "Present" : meta.label === "H" ? "Half day" : "Absent"}`}
       aria-pressed={active}
-      className="flex h-6 w-6 items-center justify-center rounded-md border-[1.5px] text-[10px] font-extrabold transition-colors"
+      className="flex h-8 w-8 items-center justify-center rounded-lg border-[1.5px] text-[12px] font-extrabold transition-colors"
       style={
         active
           ? { backgroundColor: meta.bg, color: meta.fg, borderColor: meta.fg }

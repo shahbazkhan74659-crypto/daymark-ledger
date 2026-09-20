@@ -31,3 +31,13 @@ export type SalaryTotals = {
   advanceThisYear: number;
   remainingOwed: number;
 };
+
+export type CreateWorkerInput = {
+  fullName: string;
+  designation: string;
+  contact: string;
+  joiningDate: string;
+  perDayRate: number;
+};
+
+export type CreatedWorker = CreateWorkerInput & { id: string; status: "ACTIVE" | "INACTIVE" };

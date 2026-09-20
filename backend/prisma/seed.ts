@@ -34,6 +34,16 @@ async function main() {
     { id: "seed-worker-6", fullName: "Rajesh Gupta", designation: "Plumber", contact: "9876500006", joiningDate: "2024-06-12", perDayRate: "650.00", status: "ACTIVE" as const },
     { id: "seed-worker-7", fullName: "Mohan Lal", designation: "Laborer", contact: "9876500007", joiningDate: "2024-07-01", perDayRate: "400.00", status: "ACTIVE" as const },
     { id: "seed-worker-8", fullName: "Sanjay Pandey", designation: "Laborer", contact: "9876500008", joiningDate: "2023-11-18", perDayRate: "400.00", status: "INACTIVE" as const },
+    { id: "seed-worker-9", fullName: "Ajay Thakur", designation: "Welder", contact: "9876500009", joiningDate: "2024-08-15", perDayRate: "550.00", status: "ACTIVE" as const },
+    { id: "seed-worker-10", fullName: "Vinod Chauhan", designation: "Tile Layer", contact: "9876500010", joiningDate: "2024-09-01", perDayRate: "600.00", status: "ACTIVE" as const },
+    { id: "seed-worker-11", fullName: "Manoj Tiwari", designation: "Driver", contact: "9876500011", joiningDate: "2024-09-20", perDayRate: "500.00", status: "ACTIVE" as const },
+    { id: "seed-worker-12", fullName: "Pramod Joshi", designation: "Security Guard", contact: "9876500012", joiningDate: "2024-10-05", perDayRate: "450.00", status: "ACTIVE" as const },
+    { id: "seed-worker-13", fullName: "Naveen Reddy", designation: "Supervisor", contact: "9876500013", joiningDate: "2024-10-18", perDayRate: "800.00", status: "ACTIVE" as const },
+    { id: "seed-worker-14", fullName: "Ashok Mishra", designation: "Laborer", contact: "9876500014", joiningDate: "2024-11-02", perDayRate: "400.00", status: "ACTIVE" as const },
+    { id: "seed-worker-15", fullName: "Rakesh Yadav", designation: "Mason Helper", contact: "9876500015", joiningDate: "2024-11-15", perDayRate: "450.00", status: "ACTIVE" as const },
+    { id: "seed-worker-16", fullName: "Sunil Kumar", designation: "Carpenter Helper", contact: "9876500016", joiningDate: "2024-12-01", perDayRate: "480.00", status: "ACTIVE" as const },
+    { id: "seed-worker-17", fullName: "Yogesh Patel", designation: "Painter", contact: "9876500017", joiningDate: "2024-12-10", perDayRate: "500.00", status: "ACTIVE" as const },
+    { id: "seed-worker-18", fullName: "Harish Nair", designation: "Laborer", contact: "9876500018", joiningDate: "2023-08-22", perDayRate: "400.00", status: "INACTIVE" as const },
   ];
 
   for (const worker of sampleWorkers) {

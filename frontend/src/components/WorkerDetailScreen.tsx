@@ -155,6 +155,7 @@ export function WorkerDetailScreen() {
                   year={year}
                   month={month}
                   attendance={attendance}
+                  advances={advances}
                   onMonthChange={(y, m) => {
                     setYear(y);
                     setMonth(m);

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildMonthCells, countMonthStatuses, MONTH_NAMES, todayDateString } from "../lib/calendar";
-import type { AttendanceRecord, AttendanceStatus } from "../types/worker";
+import type { Advance, AttendanceRecord, AttendanceStatus } from "../types/worker";
 
 const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -22,12 +22,14 @@ export function AttendanceCalendar({
   year,
   month,
   attendance,
+  advances,
   onMonthChange,
   onDayTap,
 }: {
   year: number;
   month: number;
   attendance: AttendanceRecord[];
+  advances: Advance[];
   onMonthChange: (year: number, month: number) => void;
   onDayTap: (date: string) => void;
 }) {
@@ -37,12 +39,19 @@ export function AttendanceCalendar({
     return map;
   }, [attendance]);
 
+  const advanceDates = useMemo(() => new Set(advances.map((a) => a.date)), [advances]);
+
   const todayStr = todayDateString();
   const cells = useMemo(
     () => buildMonthCells(year, month, attendanceByDate, todayStr),
     [year, month, attendanceByDate, todayStr],
   );
   const counts = useMemo(() => countMonthStatuses(year, month, attendanceByDate), [year, month, attendanceByDate]);
+  const monthPrefix = `${year}-${String(month).padStart(2, "0")}`;
+  const advanceCountThisMonth = useMemo(
+    () => advances.filter((a) => a.date.startsWith(monthPrefix)).length,
+    [advances, monthPrefix],
+  );
 
   function goPrev() {
     if (month === 1) onMonthChange(year - 1, 12);
@@ -90,12 +99,13 @@ export function AttendanceCalendar({
         {cells.map((cell, i) => {
           if (!cell.date) return <div key={i} className="invisible" />;
           const tokens = cell.status ? STATUS_TOKENS[cell.status] : null;
+          const hasAdvance = advanceDates.has(cell.date);
           return (
             <button
               key={cell.date}
               type="button"
               onClick={() => onDayTap(cell.date!)}
-              className="flex aspect-square items-center justify-center rounded-lg text-xs font-bold"
+              className="relative flex aspect-square items-center justify-center rounded-lg text-xs font-bold"
               style={{
                 backgroundColor: tokens?.bg ?? "#ffffff",
                 color: tokens?.fg ?? "var(--color-ink-faint)",
@@ -103,6 +113,14 @@ export function AttendanceCalendar({
               }}
             >
               {Number(cell.date.slice(-2))}
+              {hasAdvance && (
+                <span
+                  aria-label="Advance given"
+                  className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-[8px] font-black text-white shadow-[0_1px_2px_rgba(28,25,23,0.35)]"
+                >
+                  ₹
+                </span>
+              )}
             </button>
           );
         })}
@@ -122,6 +140,13 @@ export function AttendanceCalendar({
             <span className="text-[11px] text-stone-400">{label}</span>
           </div>
         ))}
+        <div className="flex items-center gap-1.5">
+          <span className="flex h-[13px] w-[13px] items-center justify-center rounded-full bg-amber-400 text-[7px] font-black text-white">
+            ₹
+          </span>
+          <span className="text-xs font-bold text-ink">{advanceCountThisMonth}</span>
+          <span className="text-[11px] text-stone-400">Advance</span>
+        </div>
       </div>
     </div>
   );

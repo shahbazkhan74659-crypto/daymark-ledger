@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError, getJson, postJson } from "../lib/api";
 import type { AttendanceStatus, Worker } from "../types/worker";
@@ -6,7 +7,7 @@ import { WorkerRow } from "./WorkerRow";
 
 function PlusIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="h-4 w-4">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="h-5 w-5">
       <path d="M12 5v14M5 12h14" strokeLinecap="round" />
     </svg>
   );
@@ -85,6 +86,7 @@ const QUICK_ACTIONS = [
 
 export function HomeScreen() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -145,13 +147,13 @@ export function HomeScreen() {
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 pt-3.5 pb-6">
-        <p className="mb-2 text-[11px] font-bold tracking-[0.06em] text-stone-400 uppercase">
+        <p className="mb-2.5 text-[12px] font-bold tracking-[0.06em] text-stone-400 uppercase">
           Workers ({workers.length})
         </p>
         {loading ? (
           <p className="text-sm text-ink-faint">Loading…</p>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             {workers.map((worker) => (
               <WorkerRow
                 key={worker.id}
@@ -178,7 +180,10 @@ export function HomeScreen() {
             <button
               key={action.key}
               type="button"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                setMenuOpen(false);
+                if (action.key === "create-employee") navigate("/workers/new");
+              }}
               className="flex items-center gap-2 rounded-xl border border-ink/40 bg-white px-4 py-2.5 text-[13px] font-bold text-ink shadow-[0_6px_16px_rgba(28,25,23,0.18)]"
             >
               {action.icon}
@@ -192,7 +197,7 @@ export function HomeScreen() {
         type="button"
         aria-label={menuOpen ? "Close quick actions" : "Open quick actions"}
         onClick={() => setMenuOpen((v) => !v)}
-        className="absolute right-5 bottom-6 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-brand shadow-[0_8px_20px_rgba(15,118,110,0.45)]"
+        className="absolute right-5 bottom-6 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-brand shadow-[0_8px_20px_rgba(15,118,110,0.45)]"
       >
         <span
           className="flex transition-transform duration-150 ease-out"
