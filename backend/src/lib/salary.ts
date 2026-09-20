@@ -14,7 +14,8 @@ export function computeSalaryTotals(
   attendances: { status: "PRESENT" | "HALF" | "ABSENT" }[],
   advances: { date: Date; amount: number }[],
   perDayRate: number,
-  now: Date = new Date(),
+  year: number,
+  month: number,
 ): SalaryTotals {
   let grossEarned = 0;
   for (const attendance of attendances) {
@@ -22,25 +23,24 @@ export function computeSalaryTotals(
     else if (attendance.status === "HALF") grossEarned += perDayRate * 0.5;
   }
 
-  const nowYear = now.getUTCFullYear();
-  const nowMonth = now.getUTCMonth();
+  const targetMonth = month - 1;
 
   let advanceAll = 0;
   let advanceThisMonth = 0;
   let advanceThisYear = 0;
   for (const advance of advances) {
     advanceAll += advance.amount;
-    const year = advance.date.getUTCFullYear();
-    const month = advance.date.getUTCMonth();
-    if (year === nowYear) {
+    const advanceYear = advance.date.getUTCFullYear();
+    const advanceMonth = advance.date.getUTCMonth();
+    if (advanceYear === year) {
       advanceThisYear += advance.amount;
-      if (month === nowMonth) advanceThisMonth += advance.amount;
+      if (advanceMonth === targetMonth) advanceThisMonth += advance.amount;
     }
   }
 
   return {
     grossEarned: round2(grossEarned),
-    netEarned: round2(grossEarned - advanceAll),
+    netEarned: round2(grossEarned - advanceThisMonth),
     advanceThisMonth: round2(advanceThisMonth),
     advanceThisYear: round2(advanceThisYear),
     remainingOwed: round2(advanceAll),

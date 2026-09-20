@@ -177,12 +177,43 @@ These decisions were made during a prior discussion, before any code was written
 
 ## Decision: Salary/advance totals — gross/net earned are all-time, not period-scoped
 
-- Status: Accepted
+- Status: Superseded — see the following decision
 - Date: 2026-09-20
 - Context: `PHASES.md`'s Phase 11 wording asks for "total earned before/after advance deduction for a period," but the working UI prototype's own calculation logic computes gross/net earned as an all-time total (every attendance record ever recorded for a worker, minus every advance ever given) — only the advance-specific figures (this-month, this-year) are period-scoped in the prototype. This ambiguity was raised with the owner directly during Phase 11 planning.
 - Decision: The `GET /api/workers/:id/salary-summary` endpoint's `grossEarned`/`netEarned` figures are all-time totals, matching the prototype exactly, with no date-range or month query parameter for them. `advanceThisMonth`/`advanceThisYear` remain scoped to the real current month/year, and `remainingOwed` is the all-time advance total (nothing currently reduces it, since there is no repayment-tracking mechanism).
 - Reasoning: Owner's explicit choice when presented with the discrepancy between the phase-description wording and the prototype's actual working behavior — the prototype was built to validate the intended UX and its calculation shape should govern over an ambiguous phrase in the roadmap text.
 - Consequences: If the admin later needs earned totals for an arbitrary period (e.g. "how much did this worker earn last month"), the current endpoint cannot answer that — it would require adding a date-range parameter to `computeSalaryTotals()`/`salary-summary`, which is an explicit future extension, not a bug, until the owner asks for it.
+
+## Decision: Salary/advance totals — reversed to per-displayed-month scoping, annual advance follows the displayed year
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context: The owner reported that browsing the Worker Detail calendar to a different month left the Earnings & Advances card unchanged — it always showed the all-time gross/net totals plus advance figures bucketed against the server's real current month/year (per the immediately preceding decision), regardless of which month the admin was actually looking at. The owner asked for the stats to reflect whichever month is currently displayed, with one exception: the annual advance figure should still cover a whole year, not a single month.
+- Decision:
+  - `GET /api/workers/:id/salary-summary` now takes `year`/`month` query params (both required together, month 1–12; defaulting to the real current month/year if both are omitted — preserving "current month by default" on first load). `grossEarned`/`netEarned` are now scoped to that month's attendance only, `advanceThisMonth` is scoped to that exact month, and `advanceThisYear` is scoped to that month's **year** (not necessarily the real current year) — so paging the calendar across a year boundary updates which year's total is shown.
+  - `netEarned` changed from `grossEarned - advanceAll` to `grossEarned - advanceThisMonth` (both figures now scoped to the same month, which is the natural reading of "net earned this month").
+  - `remainingOwed` is unchanged — it stays an all-time running total of every advance ever given, since there's still no repayment-tracking mechanism to scope it against.
+  - The frontend (`WorkerDetailScreen.tsx`) refetches `salary-summary` with the calendar's current `year`/`month` on mount and every time `AttendanceCalendar`'s month navigation changes them, and the Earnings & Advances card now shows a small "{Month} {Year}" subtitle so it's visibly clear which period the figures cover.
+- Reasoning: Owner's explicit direction, given after reviewing the live screen — the prior all-time-totals decision optimized for matching the original prototype's calculation shape, but the owner found it confusing in practice once real month-to-month navigation was in front of them. Keeping the calculation server-side (rather than deriving it client-side from already-loaded data) was the owner's explicit choice, to keep all salary-math logic living in one place (`computeSalaryTotals()`) rather than duplicating it in the frontend.
+- Consequences: This supersedes the immediately preceding decision's all-time gross/net behavior. A worker with an advance logged in a month with no recorded attendance will show a negative "Net Earned" for that month (gross ₹0 minus that month's advance) — this is an accurate reflection of the new month-scoped definition, not a bug. Any future period-earnings feature (e.g. a custom date-range report) should build on this `year`/`month` query-param pattern on `computeSalaryTotals()` rather than reintroducing an all-time total.
+
+## Decision: Phase 12 backend gap-fill endpoints added alongside the frontend phase
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context: Phase 11 built the Worker Detail backend (any-date attendance, advances, salary-summary) but didn't include a single-worker identity fetch or a full attendance-history list — Phase 12's Worker Detail screen needs both (the header needs a worker's name without depending on the home screen's already-loaded list, and the monthly calendar needs the full attendance history in one call rather than one request per visible day) but neither fit any prior phase's stated scope.
+- Decision: Add `GET /api/workers/:id` (identity: `id, fullName, designation, perDayRate, status`) and `GET /api/workers/:id/attendance` (full history, `{date, status}[]`, sorted date descending) to `backend/src/routes/workers.ts` as part of Phase 12, rather than reopening a "complete" Phase 11.
+- Reasoning: Both are small, direct extensions of Phase 11's existing patterns (same `requireSession`/404/envelope conventions, `GET /:id/attendance` mirrors `GET /:id/advances`'s shape and sort order exactly) and only became a known necessity once Phase 12's actual screen needs were worked out — filling the gap where it's discovered was judged better than a retroactive addendum to a phase already marked done.
+- Consequences: Future phases needing single-worker or full-history data should reuse these two endpoints rather than re-deriving them from the list-all/today-only/single-date endpoints.
+
+## Decision: Per-day rate editing pulled forward from Phase 15b into Phase 12
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context: `PHASES.md`'s Phase 15b scope covers updating a worker's personal/employment info generally, including per-day rate, as part of the broader Manage Employees editing flow (not yet built). Phase 12's Worker Detail screen shows the rate in its "Salary Configuration" section regardless (per `PROJECT.md`'s spec), and the UI prototype shows it as editable there — read-only-for-now vs. editable-now was raised with the owner directly.
+- Decision: Per-day rate is editable directly on the Phase 12 Worker Detail screen via a new `POST /api/workers/:id/rate` endpoint (save-on-blur) — but only the rate field. Full personal-info editing, the Active/Inactive toggle, and document management remain exactly as scoped in Phase 15b/16b, untouched by this phase.
+- Reasoning: Owner's explicit choice — the rate literally lives inside the "Salary Configuration" section this phase already builds, and gating it behind a much later phase would ship an oddly read-only field on a screen otherwise entirely about calculation, for no real benefit.
+- Consequences: When Phase 15b is built, its personal-info edit form should exclude per-day rate (already editable here) to avoid two divergent editing paths for the same field; `POST /api/workers/:id/rate` is the one canonical way to change it going forward.
 
 ## Decision: UI language — English
 

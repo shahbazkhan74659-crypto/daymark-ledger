@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { HomeScreen } from "./components/HomeScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { RequireAuth } from "./components/RequireAuth";
-import { WorkerDetailStub } from "./components/WorkerDetailStub";
+import { WorkerDetailScreen } from "./components/WorkerDetailScreen";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
             path="/workers/:id"
             element={
               <RequireAuth>
-                <WorkerDetailStub />
+                <WorkerDetailScreen />
               </RequireAuth>
             }
           />
