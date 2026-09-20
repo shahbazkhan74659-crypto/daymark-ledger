@@ -1,6 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import { prisma } from "../src/db.js";
+import { todayDateOnly } from "../src/lib/date.js";
 
 const BCRYPT_COST = 12;
 
@@ -45,6 +46,59 @@ async function main() {
   }
 
   console.log(`Seeded ${sampleWorkers.length} sample workers.`);
+
+  function daysAgo(days: number): Date {
+    const today = todayDateOnly();
+    return new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - days));
+  }
+
+  function priorMonthDate(day: number): Date {
+    const today = todayDateOnly();
+    const year = today.getUTCFullYear();
+    const month = today.getUTCMonth();
+    // In January there's no prior month within the same year; fall back to the
+    // current month instead. This only affects the advanceThisMonth figure
+    // used to hand-verify salary-summary, and only when seeding in January.
+    if (month === 0) {
+      return new Date(Date.UTC(year, 0, Math.min(day, 28)));
+    }
+    return new Date(Date.UTC(year, month - 1, Math.min(day, 28)));
+  }
+
+  const attendanceSeed: { workerId: string; date: Date; status: "PRESENT" | "HALF" | "ABSENT" }[] = [
+    { workerId: "seed-worker-1", date: daysAgo(1), status: "PRESENT" },
+    { workerId: "seed-worker-1", date: daysAgo(2), status: "HALF" },
+    { workerId: "seed-worker-1", date: daysAgo(3), status: "ABSENT" },
+    { workerId: "seed-worker-2", date: daysAgo(1), status: "PRESENT" },
+    { workerId: "seed-worker-2", date: daysAgo(2), status: "PRESENT" },
+    { workerId: "seed-worker-2", date: daysAgo(3), status: "HALF" },
+  ];
+
+  for (const entry of attendanceSeed) {
+    await prisma.attendance.upsert({
+      where: { workerId_date: { workerId: entry.workerId, date: entry.date } },
+      update: { status: entry.status },
+      create: entry,
+    });
+  }
+
+  console.log(`Seeded ${attendanceSeed.length} sample attendance records.`);
+
+  const advanceSeed: { workerId: string; date: Date; amount: string }[] = [
+    { workerId: "seed-worker-1", date: daysAgo(2), amount: "200.00" },
+    { workerId: "seed-worker-1", date: priorMonthDate(10), amount: "150.00" },
+    { workerId: "seed-worker-2", date: daysAgo(1), amount: "100.00" },
+  ];
+
+  for (const entry of advanceSeed) {
+    await prisma.advance.upsert({
+      where: { workerId_date: { workerId: entry.workerId, date: entry.date } },
+      update: { amount: entry.amount },
+      create: entry,
+    });
+  }
+
+  console.log(`Seeded ${advanceSeed.length} sample advance records.`);
 }
 
 main()

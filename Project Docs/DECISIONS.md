@@ -166,6 +166,24 @@ These decisions were made during a prior discussion, before any code was written
 - Reasoning: Both domains are genuinely fixed and stable — the half-day rule in this file depends on `HALF` remaining a known, exact value — and a DB-native enum catches bad data at the schema level for free, without adding a new dependency (unlike introducing zod solely for this). The trade-off (adding a new status value later requires a migration) was judged acceptable since this project's statuses are specification-locked, not expected to grow ad hoc.
 - Consequences: Future domain models with a similarly fixed status/category field (e.g. any status the Advance model or later phases introduce) should default to a Prisma enum following this same pattern, rather than mixing free-text and enum representations across the schema. Introducing a validation library (zod etc.) remains an open option for request-body validation generally, but is not required by this decision.
 
+## Decision: Advance model — one entry per worker per day, not an append-only ledger
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context: Phase 11 (Details Page Backend, see `PHASES.md`) needed to design the `Advance` model. The original advance decision above ("logged as individual dated entries") didn't specify whether a single calendar day could hold more than one advance entry per worker. The UI prototype's day-popup (checkbox + ₹ amount, attached to the same popup used for setting that day's attendance status) treats a day's advance as one editable value — saving replaces any prior advance already logged for that exact date, rather than adding a second one.
+- Decision: `Advance` gets `@@unique([workerId, date])`, identical in shape to `Attendance`'s existing unique constraint. A worker can have at most one advance entry per calendar day; logging a new amount on a date that already has one overwrites it (an upsert), and clearing it (amount `0` or `null`) deletes the row — mirroring `Attendance`'s `status: null` clear behavior from Phase 9/10.
+- Reasoning: Matches the prototype's actual working UX exactly, avoids inventing a change to the entry flow the owner hasn't asked for, and reuses the same compound-unique-key upsert/clear pattern already proven for `Attendance` rather than introducing a new one.
+- Consequences: If the admin ever needs to log more than one advance on the same day (e.g. two separate payments), the current model cannot represent that without a schema change (dropping or loosening the unique constraint) — revisit only if the owner reports this as an actual need.
+
+## Decision: Salary/advance totals — gross/net earned are all-time, not period-scoped
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context: `PHASES.md`'s Phase 11 wording asks for "total earned before/after advance deduction for a period," but the working UI prototype's own calculation logic computes gross/net earned as an all-time total (every attendance record ever recorded for a worker, minus every advance ever given) — only the advance-specific figures (this-month, this-year) are period-scoped in the prototype. This ambiguity was raised with the owner directly during Phase 11 planning.
+- Decision: The `GET /api/workers/:id/salary-summary` endpoint's `grossEarned`/`netEarned` figures are all-time totals, matching the prototype exactly, with no date-range or month query parameter for them. `advanceThisMonth`/`advanceThisYear` remain scoped to the real current month/year, and `remainingOwed` is the all-time advance total (nothing currently reduces it, since there is no repayment-tracking mechanism).
+- Reasoning: Owner's explicit choice when presented with the discrepancy between the phase-description wording and the prototype's actual working behavior — the prototype was built to validate the intended UX and its calculation shape should govern over an ambiguous phrase in the roadmap text.
+- Consequences: If the admin later needs earned totals for an arbitrary period (e.g. "how much did this worker earn last month"), the current endpoint cannot answer that — it would require adding a date-range parameter to `computeSalaryTotals()`/`salary-summary`, which is an explicit future extension, not a bug, until the owner asks for it.
+
 ## Decision: UI language — English
 
 - Status: Accepted

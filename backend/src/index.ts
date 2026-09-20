@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { prisma } from "./db.js";
+import { advancesRouter } from "./routes/advances.js";
 import { authRouter } from "./routes/auth.js";
 import { workersRouter } from "./routes/workers.js";
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
 app.use("/api/workers", workersRouter);
+app.use("/api/workers", advancesRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
