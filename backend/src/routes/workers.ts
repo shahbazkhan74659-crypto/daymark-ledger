@@ -13,6 +13,10 @@ function isAttendanceStatus(value: unknown): value is AttendanceStatusInput {
   return typeof value === "string" && (ATTENDANCE_STATUSES as readonly string[]).includes(value);
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 async function setAttendanceForDate(
   workerId: string,
   date: Date,
@@ -52,6 +56,58 @@ workersRouter.get("/", requireSession, async (_req, res) => {
   } catch (error) {
     console.error("Listing workers failed:", error);
     res.status(500).json({ status: "error", message: "Failed to list workers" });
+  }
+});
+
+workersRouter.post("/", requireSession, async (req, res) => {
+  const { fullName, designation, contact, joiningDate: joiningDateInput, perDayRate } = req.body ?? {};
+
+  if (!isNonEmptyString(fullName)) {
+    res.status(400).json({ status: "error", message: "fullName must be a non-empty string" });
+    return;
+  }
+
+  if (!isNonEmptyString(designation)) {
+    res.status(400).json({ status: "error", message: "designation must be a non-empty string" });
+    return;
+  }
+
+  if (!isNonEmptyString(contact)) {
+    res.status(400).json({ status: "error", message: "contact must be a non-empty string" });
+    return;
+  }
+
+  const joiningDate = typeof joiningDateInput === "string" ? parseDateOnly(joiningDateInput) : null;
+  if (!joiningDate) {
+    res.status(400).json({ status: "error", message: "joiningDate must be in YYYY-MM-DD format" });
+    return;
+  }
+
+  if (!isValidRate(perDayRate)) {
+    res.status(400).json({ status: "error", message: "perDayRate must be a positive number" });
+    return;
+  }
+
+  try {
+    const worker = await prisma.worker.create({
+      data: { fullName, designation, contact, joiningDate, perDayRate, status: "ACTIVE" },
+    });
+
+    res.json({
+      status: "ok",
+      worker: {
+        id: worker.id,
+        fullName: worker.fullName,
+        designation: worker.designation,
+        contact: worker.contact,
+        joiningDate: dateOnlyToString(worker.joiningDate),
+        perDayRate: Number(worker.perDayRate),
+        status: worker.status,
+      },
+    });
+  } catch (error) {
+    console.error("Creating worker failed:", error);
+    res.status(500).json({ status: "error", message: "Failed to create worker" });
   }
 });
 
