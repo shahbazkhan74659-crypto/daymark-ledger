@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { ApiError, postForm, postJson } from "../lib/api";
+import { validateDocumentBatch } from "../lib/documentRules";
 import { formatFileSize } from "../lib/format";
 import type { WorkerDocument } from "../types/worker";
 
@@ -20,6 +21,12 @@ export function ManageDocumentsCard({
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (files.length === 0) return;
+
+    const validationError = validateDocumentBatch(files, documents.length);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     setUploading(true);
     setError(null);
@@ -107,7 +114,7 @@ export function ManageDocumentsCard({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".jpg,.jpeg"
         multiple
         onChange={handleFilesSelected}
         className="hidden"

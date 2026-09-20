@@ -8,9 +8,10 @@ import { ensureWorkerUploadDir, generateStoredFileName, workerUploadDir } from "
 
 export const documentsRouter = Router();
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
-const ALLOWED_MIME_TYPES = new Set(["application/pdf", "image/jpeg", "image/png"]);
-const ALLOWED_EXTENSIONS = new Set([".pdf", ".jpg", ".jpeg", ".png"]);
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg"]);
+const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg"]);
+const MAX_DOCUMENTS_PER_WORKER = 2;
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
@@ -48,6 +49,12 @@ documentsRouter.post("/:id/documents", requireSession, async (req, res) => {
       res.status(404).json({ status: "error", message: "Worker not found" });
       return;
     }
+
+    const documentCount = await prisma.workerDocument.count({ where: { workerId: id } });
+    if (documentCount >= MAX_DOCUMENTS_PER_WORKER) {
+      res.status(400).json({ status: "error", message: "Maximum of 2 documents allowed per employee" });
+      return;
+    }
   } catch (error) {
     console.error("Fetching worker failed:", error);
     res.status(500).json({ status: "error", message: "Failed to fetch worker" });
@@ -57,11 +64,11 @@ documentsRouter.post("/:id/documents", requireSession, async (req, res) => {
   upload(req, res, async (err: unknown) => {
     if (err) {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-        res.status(400).json({ status: "error", message: "File exceeds the 10MB size limit" });
+        res.status(400).json({ status: "error", message: "File exceeds the 2MB size limit" });
         return;
       }
       if (err instanceof Error && err.message === "UNSUPPORTED_FILE_TYPE") {
-        res.status(400).json({ status: "error", message: "File type must be pdf, jpg, jpeg, or png" });
+        res.status(400).json({ status: "error", message: "File type must be jpg or jpeg" });
         return;
       }
       console.error("Uploading document failed:", err);

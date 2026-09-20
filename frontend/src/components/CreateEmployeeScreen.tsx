@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError, postForm, postJson } from "../lib/api";
+import { validateDocumentBatch } from "../lib/documentRules";
 import type { CreatedWorker } from "../types/worker";
 
 function BackIcon() {
@@ -204,12 +205,21 @@ export function CreateEmployeeScreen() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".jpg,.jpeg"
                 multiple
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
                   e.target.value = "";
-                  if (files.length > 0) setSelectedFiles((current) => [...current, ...files]);
+                  if (files.length === 0) return;
+
+                  const validationError = validateDocumentBatch(files, selectedFiles.length);
+                  if (validationError) {
+                    setError(validationError);
+                    return;
+                  }
+
+                  setError(null);
+                  setSelectedFiles((current) => [...current, ...files]);
                 }}
                 className="hidden"
               />
