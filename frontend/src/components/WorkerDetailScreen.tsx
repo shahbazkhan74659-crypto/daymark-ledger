@@ -3,11 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import { AVATAR_PALETTE, getInitials, hashToIndex } from "../lib/avatar";
 import { ApiError, getJson, postJson } from "../lib/api";
 import { MONTH_NAMES } from "../lib/calendar";
-import type { Advance, AttendanceRecord, AttendanceStatus, SalaryTotals, WorkerDetail } from "../types/worker";
+import type { Advance, AttendanceRecord, AttendanceStatus, SalaryTotals, WorkerDetail, WorkerDocument } from "../types/worker";
 import { AdvanceHistoryList } from "./AdvanceHistoryList";
 import { AttendanceCalendar } from "./AttendanceCalendar";
 import { DayEditPopup } from "./DayEditPopup";
+import { DocumentPreviewModal } from "./DocumentPreviewModal";
 import { EarningsSummaryCard } from "./EarningsSummaryCard";
+import { PersonalInfoCard } from "./PersonalInfoCard";
 import { SalaryConfigCard } from "./SalaryConfigCard";
 
 function BackIcon() {
@@ -41,9 +43,11 @@ export function WorkerDetailScreen() {
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [advances, setAdvances] = useState<Advance[]>([]);
+  const [documents, setDocuments] = useState<WorkerDocument[]>([]);
   const [totals, setTotals] = useState<SalaryTotals | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<WorkerDocument | null>(null);
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -55,11 +59,13 @@ export function WorkerDetailScreen() {
       getJson<{ worker: WorkerDetail }>(`/api/workers/${workerId}`),
       getJson<{ attendance: AttendanceRecord[] }>(`/api/workers/${workerId}/attendance`),
       getJson<{ advances: Advance[] }>(`/api/workers/${workerId}/advances`),
+      getJson<{ documents: WorkerDocument[] }>(`/api/workers/${workerId}/documents`),
     ])
-      .then(([workerRes, attendanceRes, advancesRes]) => {
+      .then(([workerRes, attendanceRes, advancesRes, documentsRes]) => {
         setWorker(workerRes.worker);
         setAttendance(attendanceRes.attendance);
         setAdvances(advancesRes.advances);
+        setDocuments(documentsRes.documents);
       })
       .catch((err) => {
         console.error("Failed to load worker detail:", err);
@@ -151,6 +157,7 @@ export function WorkerDetailScreen() {
           ) : (
             worker && (
               <div className="flex flex-col gap-3.5">
+                <PersonalInfoCard worker={worker} documents={documents} onDocumentClick={setPreviewDocument} />
                 <AttendanceCalendar
                   year={year}
                   month={month}
@@ -177,6 +184,14 @@ export function WorkerDetailScreen() {
             initialAdvanceAmount={selectedAdvance?.amount ?? null}
             onCancel={() => setSelectedDate(null)}
             onSave={handleDaySave}
+          />
+        )}
+
+        {previewDocument && (
+          <DocumentPreviewModal
+            workerId={workerId}
+            document={previewDocument}
+            onClose={() => setPreviewDocument(null)}
           />
         )}
       </div>

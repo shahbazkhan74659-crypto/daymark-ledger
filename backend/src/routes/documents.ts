@@ -154,7 +154,7 @@ documentsRouter.get("/:id/documents/:documentId/download", requireSession, async
     res.setHeader("Content-Type", document.mimeType);
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${document.originalName.replace(/"/g, "")}"`,
+      `inline; filename="${document.originalName.replace(/"/g, "")}"`,
     );
     fs.createReadStream(filePath).pipe(res);
   } catch (error) {

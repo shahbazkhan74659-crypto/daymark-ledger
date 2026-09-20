@@ -1,4 +1,5 @@
 export type AttendanceStatus = "PRESENT" | "HALF" | "ABSENT";
+export type WorkerStatus = "ACTIVE" | "INACTIVE";
 
 export type Worker = {
   id: string;
@@ -10,8 +11,25 @@ export type WorkerDetail = {
   id: string;
   fullName: string;
   designation: string;
+  contact: string;
+  joiningDate: string;
   perDayRate: number;
-  status: "ACTIVE" | "INACTIVE";
+  status: WorkerStatus;
+};
+
+export type ManageWorker = {
+  id: string;
+  fullName: string;
+  designation: string;
+  status: WorkerStatus;
+};
+
+export type WorkerDocument = {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
 };
 
 export type AttendanceRecord = {
@@ -40,4 +58,4 @@ export type CreateWorkerInput = {
   perDayRate: number;
 };
 
-export type CreatedWorker = CreateWorkerInput & { id: string; status: "ACTIVE" | "INACTIVE" };
+export type CreatedWorker = CreateWorkerInput & { id: string; status: WorkerStatus };

@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { CreateEmployeeScreen } from "./components/CreateEmployeeScreen";
 import { HomeScreen } from "./components/HomeScreen";
 import { LoginScreen } from "./components/LoginScreen";
+import { ManageEmployeeDetailScreen } from "./components/ManageEmployeeDetailScreen";
+import { ManageEmployeesScreen } from "./components/ManageEmployeesScreen";
 import { RequireAuth } from "./components/RequireAuth";
 import { WorkerDetailScreen } from "./components/WorkerDetailScreen";
 import { AuthProvider } from "./context/AuthContext";
@@ -33,6 +35,22 @@ function App() {
             element={
               <RequireAuth>
                 <WorkerDetailScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/manage/workers"
+            element={
+              <RequireAuth>
+                <ManageEmployeesScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/manage/workers/:id"
+            element={
+              <RequireAuth>
+                <ManageEmployeeDetailScreen />
               </RequireAuth>
             }
           />

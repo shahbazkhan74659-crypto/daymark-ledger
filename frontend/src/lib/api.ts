@@ -3,7 +3,7 @@ type ApiErrorEnvelope = { status: "error"; message: string };
 
 export class ApiError extends Error {}
 
-async function parseResponse<T>(res: Response): Promise<ApiEnvelope<T>> {
+export async function parseResponse<T>(res: Response): Promise<ApiEnvelope<T>> {
   const body = (await res.json()) as ApiEnvelope<T> | ApiErrorEnvelope;
 
   if (!res.ok || body.status !== "ok") {
@@ -25,5 +25,10 @@ export async function postJson<T>(path: string, body?: unknown): Promise<ApiEnve
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  return parseResponse<T>(res);
+}
+
+export async function postForm<T>(path: string, formData: FormData): Promise<ApiEnvelope<T>> {
+  const res = await fetch(path, { method: "POST", credentials: "include", body: formData });
   return parseResponse<T>(res);
 }

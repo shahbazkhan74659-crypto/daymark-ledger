@@ -24,6 +24,12 @@
   --color-status-absent-fg: #7f1d1d;
   --color-status-neutral-fg: #a8a29e;
   --color-status-neutral-border: #d6d3d1;
+
+  /* Worker status colors (Active/Inactive) — Manage Employees, matches the UI prototype */
+  --color-status-active-bg: #dcfce7;
+  --color-status-active-fg: #166534;
+  --color-status-inactive-bg: #f5f5f4;
+  --color-status-inactive-fg: #78716c;
 }
 
 html,

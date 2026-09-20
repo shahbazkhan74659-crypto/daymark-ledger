@@ -183,6 +183,7 @@ export function HomeScreen() {
               onClick={() => {
                 setMenuOpen(false);
                 if (action.key === "create-employee") navigate("/workers/new");
+                if (action.key === "manage-employees") navigate("/manage/workers");
               }}
               className="flex items-center gap-2 rounded-xl border border-ink/40 bg-white px-4 py-2.5 text-[13px] font-bold text-ink shadow-[0_6px_16px_rgba(28,25,23,0.18)]"
             >
