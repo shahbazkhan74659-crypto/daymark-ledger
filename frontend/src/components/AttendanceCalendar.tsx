@@ -126,7 +126,7 @@ export function AttendanceCalendar({
         })}
       </div>
 
-      <div className="mt-3.5 flex justify-around border-t border-[#f0efed] pt-3">
+      <div className="mt-3.5 grid grid-cols-2 gap-y-2.5 border-t border-[#f0efed] pt-3">
         {(
           [
             { status: "PRESENT" as const, label: "Present" },
@@ -134,13 +134,13 @@ export function AttendanceCalendar({
             { status: "ABSENT" as const, label: "Absent" },
           ]
         ).map(({ status, label }) => (
-          <div key={status} className="flex items-center gap-1.5">
+          <div key={status} className="flex items-center justify-center gap-1.5">
             <span className="h-[9px] w-[9px] rounded-[3px]" style={{ backgroundColor: STATUS_TOKENS[status].bg }} />
             <span className="text-xs font-bold text-ink">{counts[status]}</span>
             <span className="text-[11px] text-stone-400">{label}</span>
           </div>
         ))}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5">
           <span className="flex h-[13px] w-[13px] items-center justify-center rounded-full bg-amber-400 text-[7px] font-black text-white">
             ₹
           </span>

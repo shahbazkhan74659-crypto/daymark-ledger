@@ -4,6 +4,8 @@ import { HomeScreen } from "./components/HomeScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { ManageEmployeeDetailScreen } from "./components/ManageEmployeeDetailScreen";
 import { ManageEmployeesScreen } from "./components/ManageEmployeesScreen";
+import { ReportConfigScreen } from "./components/ReportConfigScreen";
+import { ReportingScreen } from "./components/ReportingScreen";
 import { RequireAuth } from "./components/RequireAuth";
 import { WorkerDetailScreen } from "./components/WorkerDetailScreen";
 import { AuthProvider } from "./context/AuthContext";
@@ -51,6 +53,22 @@ function App() {
             element={
               <RequireAuth>
                 <ManageEmployeeDetailScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <RequireAuth>
+                <ReportingScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/reports/:format"
+            element={
+              <RequireAuth>
+                <ReportConfigScreen />
               </RequireAuth>
             }
           />

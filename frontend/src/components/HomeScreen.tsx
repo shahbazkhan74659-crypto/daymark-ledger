@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError, getJson, postJson } from "../lib/api";
 import type { AttendanceStatus, Worker } from "../types/worker";
+import { SearchBar } from "./SearchBar";
 import { WorkerRow } from "./WorkerRow";
 
 function PlusIcon() {
@@ -91,6 +92,7 @@ export function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -124,6 +126,10 @@ export function HomeScreen() {
     new Date(),
   );
 
+  const filteredWorkers = workers.filter((worker) =>
+    worker.fullName.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+  );
+
   return (
     <div className="flex h-dvh w-full justify-center bg-stone-200 font-sans sm:items-center sm:py-8">
     <div className="relative flex h-dvh w-full max-w-md flex-col overflow-hidden bg-page sm:h-[min(844px,calc(100dvh-4rem))] sm:rounded-2xl sm:shadow-lg">
@@ -147,14 +153,17 @@ export function HomeScreen() {
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 pt-3.5 pb-6">
+        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search employee name" />
         <p className="mb-2.5 text-[12px] font-bold tracking-[0.06em] text-stone-400 uppercase">
-          Workers ({workers.length})
+          Workers ({filteredWorkers.length})
         </p>
         {loading ? (
           <p className="text-sm text-ink-faint">Loading…</p>
+        ) : filteredWorkers.length === 0 ? (
+          <p className="text-sm text-ink-faint">No workers match "{searchQuery}".</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {workers.map((worker) => (
+            {filteredWorkers.map((worker) => (
               <WorkerRow
                 key={worker.id}
                 worker={worker}
@@ -184,6 +193,7 @@ export function HomeScreen() {
                 setMenuOpen(false);
                 if (action.key === "create-employee") navigate("/workers/new");
                 if (action.key === "manage-employees") navigate("/manage/workers");
+                if (action.key === "reporting") navigate("/reports");
               }}
               className="flex items-center gap-2 rounded-xl border border-ink/40 bg-white px-4 py-2.5 text-[13px] font-bold text-ink shadow-[0_6px_16px_rgba(28,25,23,0.18)]"
             >
