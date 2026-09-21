@@ -26,14 +26,20 @@ export const REPORT_FIELD_DEFS: { key: ReportFieldKey; label: string }[] = [
 ];
 
 export const DEFAULT_REPORT_FIELDS: Record<ReportFieldKey, boolean> = {
-  name: true,
-  designation: true,
+  name: false,
+  designation: false,
   contact: false,
   joiningDate: false,
   perDayRate: false,
-  attendance: true,
-  gross: true,
-  net: true,
+  attendance: false,
+  gross: false,
+  net: false,
   advance: false,
   remaining: false,
 };
+
+export interface ReportFieldPreference {
+  id: string;
+  name: string;
+  fields: Record<ReportFieldKey, boolean>;
+}

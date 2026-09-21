@@ -29,7 +29,7 @@ Build one web app, accessible from any device, where the admin can, per worker: 
 
 - No worker-facing access — this is a single-user (admin-only) application. Workers do not have accounts or access.
 - No multi-admin/multi-user support and no OAuth/social login — a single admin account, database-backed sessions only (see `DECISIONS.md`).
-- Workers are never deleted from the system — "removing" a worker means marking them Inactive, not erasing their record.
+- ~~Workers are never deleted from the system~~ — **reversed 2026-09-21** (see `DECISIONS.md`): "removing" a worker still means marking them Inactive first, but an Inactive worker can now be permanently deleted (erasing their record and all attendance/advance/document history) via the "Inactive Employees" screen — Active workers can never be deleted directly, deactivation is a mandatory first step.
 
 ## Target Users
 
@@ -45,7 +45,7 @@ Build one web app, accessible from any device, where the admin can, per worker: 
 - **Salary configuration:** a per-day salary rate set individually per worker; half-day pay is always exactly 0.5 × the per-day rate (flat rule for all workers).
 - **Salary & advance calculations (auto-calculated):** total earned before/after advance deduction for a period, running-month advance total, and whole-year advance total plus remaining amount owed.
 - **Login:** a dedicated login screen (not just a PIN), with credentials set by the admin, presumably during first-time setup.
-- **Quick-actions menu:** a floating circular menu button (bottom-right of the screen) that opens Create New Employee, Manage Employees, Reporting, and Settings.
+- **Quick-actions menu:** a floating circular menu button (bottom-right of the screen) that opens Create New Employee, Manage Employees, Reporting, and Inactive Employees — Settings' reserved slot was replaced by Inactive Employees on 2026-09-21, and Settings was cancelled outright shortly after (see `DECISIONS.md`); it has no menu entry point and is not planned.
 - **Manage Employees:** an admin flow, separate from the day-to-day attendance view, for worker housekeeping — listing all workers, toggling Active/Inactive, editing personal/employment info, and managing document uploads per worker.
 - **Create New Employee:** a form to add a new worker (full name, designation, contact, joining date, per-day rate).
 

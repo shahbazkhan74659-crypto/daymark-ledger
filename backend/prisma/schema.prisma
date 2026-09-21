@@ -94,3 +94,10 @@ model WorkerDocument {
 
   @@index([workerId])
 }
+
+model ReportFieldPreference {
+  id        String   @id @default(cuid())
+  name      String
+  fields    Json
+  createdAt DateTime @default(now())
+}

@@ -1,6 +1,6 @@
-import { useEffect, useId, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { getJson } from "../lib/api";
+import { useEffect, useRef, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ApiError, getJson, postBlob } from "../lib/api";
 import { MONTH_NAMES } from "../lib/calendar";
 import { DEFAULT_REPORT_FIELDS, REPORT_FIELD_DEFS } from "../types/report";
 import type { ReportFieldKey, ReportFormat } from "../types/report";
@@ -49,6 +49,14 @@ function CloseIcon() {
   );
 }
 
+function BookmarkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+      <path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function formatShortDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return `${d} ${MONTH_NAMES[m - 1].slice(0, 3)} ${y}`;
@@ -70,25 +78,33 @@ function DateIconButton({
   onChange: (value: string) => void;
   ariaLabel: string;
 }) {
-  const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function openPicker() {
+    const input = inputRef.current;
+    if (input && typeof input.showPicker === "function") {
+      try {
+        input.showPicker();
+      } catch {
+        // Some browsers throw if showPicker() isn't allowed here (e.g. not a direct
+        // user-gesture call) — the input itself is still directly tappable as a fallback.
+      }
+    }
+  }
 
   return (
-    <>
-      <label
-        htmlFor={id}
-        className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-[14px] bg-page text-ink transition-colors hover:bg-black hover:text-white active:bg-black active:text-white"
-      >
-        <CalendarIcon />
-      </label>
+    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px] bg-page text-ink transition-colors focus-within:bg-black focus-within:text-white">
+      <CalendarIcon />
       <input
-        id={id}
+        ref={inputRef}
         type="date"
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
+        onClick={openPicker}
+        className="absolute inset-0 h-full w-full cursor-pointer border-0 bg-transparent text-transparent caret-transparent [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
       />
-    </>
+    </div>
   );
 }
 
@@ -101,6 +117,7 @@ function formatFromParam(param: string | undefined): ReportFormat | null {
 export function ReportConfigScreen() {
   const { format: formatParam } = useParams<{ format: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const format = formatFromParam(formatParam);
 
   const [from, setFrom] = useState("");
@@ -111,16 +128,23 @@ export function ReportConfigScreen() {
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<string>>(new Set());
   const [employeePickerOpen, setEmployeePickerOpen] = useState(false);
   const [employeeSearchQuery, setEmployeeSearchQuery] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     getJson<{ workers: ManageWorker[] }>("/api/workers/all")
-      .then(({ workers }) => {
-        setEmployees(workers);
-        setSelectedEmployeeIds(new Set(workers.map((w) => w.id)));
-      })
+      .then(({ workers }) => setEmployees(workers))
       .catch((err) => console.error("Failed to load workers:", err))
       .finally(() => setEmployeesLoading(false));
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { appliedFields?: Record<ReportFieldKey, boolean> } | null;
+    if (state?.appliedFields) {
+      setFields(state.appliedFields);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
 
   if (!format) {
     return <Navigate to="/reports" replace />;
@@ -149,10 +173,46 @@ export function ReportConfigScreen() {
     setSelectedEmployeeIds(allEmployeesSelected ? new Set() : new Set(employees.map((w) => w.id)));
   }
 
-  function handleSave() {
-    // Phase 17 is frontend-only — no backend report endpoint exists yet (Phase 18).
-    // Matches the prototype's own saveReport(), which is a no-op that just returns to the list.
-    navigate("/");
+  async function handleSave() {
+    if (selectedEmployeeIds.size === 0) {
+      setSaveError("Select at least one employee.");
+      return;
+    }
+    if (!from || !to) {
+      setSaveError("Choose both a From and To date.");
+      return;
+    }
+    if (!Object.values(fields).some(Boolean)) {
+      setSaveError("Select at least one field to include.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const { blob, filename } = await postBlob("/api/workers/report", {
+        format,
+        from,
+        to,
+        fields,
+        workerIds: Array.from(selectedEmployeeIds),
+      });
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename ?? `Attendance_Register.${format === "PDF" ? "pdf" : "xlsx"}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+
+      navigate("/reports");
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : "Failed to generate report. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -200,6 +260,17 @@ export function ReportConfigScreen() {
             <span className="text-[14px] font-bold text-ink">Employee</span>
           </button>
 
+          <button
+            type="button"
+            onClick={() => navigate(`/reports/${formatParam}/preferences`)}
+            className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-page text-ink">
+              <BookmarkIcon />
+            </span>
+            <span className="text-[14px] font-bold text-ink">Field Preference</span>
+          </button>
+
           <div className="rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
             <p className="mb-1 text-[12px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">
               Fields to Include
@@ -220,6 +291,7 @@ export function ReportConfigScreen() {
             ))}
           </div>
 
+          {saveError && <p className="text-[12px] font-semibold text-red-600">{saveError}</p>}
           <div className="mt-auto flex gap-2.5">
             <Link
               to="/reports"
@@ -230,9 +302,10 @@ export function ReportConfigScreen() {
             <button
               type="button"
               onClick={handleSave}
-              className="h-[46px] flex-1 rounded-[10px] bg-brand text-[14px] font-bold text-white"
+              disabled={saving}
+              className="h-[46px] flex-1 rounded-[10px] bg-brand text-[14px] font-bold text-white disabled:opacity-60"
             >
-              Save
+              {saving ? "Generating…" : "Save"}
             </button>
           </div>
         </div>

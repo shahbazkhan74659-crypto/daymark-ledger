@@ -32,3 +32,38 @@ export async function postForm<T>(path: string, formData: FormData): Promise<Api
   const res = await fetch(path, { method: "POST", credentials: "include", body: formData });
   return parseResponse<T>(res);
 }
+
+export interface DownloadedFile {
+  blob: Blob;
+  filename: string | null;
+}
+
+function filenameFromContentDisposition(header: string | null): string | null {
+  if (!header) return null;
+  const match = /filename="?([^"]+)"?/.exec(header);
+  return match ? match[1] : null;
+}
+
+export async function postBlob(path: string, body: unknown): Promise<DownloadedFile> {
+  const res = await fetch(path, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    let message = `Request failed: ${res.status}`;
+    try {
+      const errorBody = (await res.json()) as ApiErrorEnvelope;
+      if (errorBody?.message) message = errorBody.message;
+    } catch {
+      // response body wasn't JSON — keep the default message
+    }
+    throw new ApiError(message);
+  }
+
+  const blob = await res.blob();
+  const filename = filenameFromContentDisposition(res.headers.get("Content-Disposition"));
+  return { blob, filename };
+}

@@ -1,8 +1,10 @@
+import fs from "node:fs";
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { computeSalaryTotals } from "../lib/salary.js";
 import { dateOnlyToString, monthDateRange, parseDateOnly, todayDateOnly } from "../lib/date.js";
 import { requireSession } from "../middleware/requireSession.js";
+import { workerUploadDir } from "../lib/storage.js";
 
 export const workersRouter = Router();
 
@@ -243,6 +245,36 @@ workersRouter.post("/:id/status", requireSession, async (req, res) => {
   } catch (error) {
     console.error("Updating worker status failed:", error);
     res.status(500).json({ status: "error", message: "Failed to update worker status" });
+  }
+});
+
+workersRouter.post("/:id/delete", requireSession, async (req, res) => {
+  const id = String(req.params.id);
+
+  try {
+    const worker = await prisma.worker.findUnique({ where: { id } });
+    if (!worker) {
+      res.status(404).json({ status: "error", message: "Worker not found" });
+      return;
+    }
+
+    if (worker.status !== "INACTIVE") {
+      res.status(400).json({ status: "error", message: "Only inactive workers can be deleted" });
+      return;
+    }
+
+    // Cascades Attendance/Advance/WorkerDocument rows via the schema's onDelete: Cascade —
+    // the uploaded files themselves live on disk and aren't touched by that cascade.
+    await prisma.worker.delete({ where: { id } });
+
+    fs.rm(workerUploadDir(id), { recursive: true, force: true }, (err) => {
+      if (err) console.error(`Failed to remove upload directory for deleted worker ${id}:`, err);
+    });
+
+    res.json({ status: "ok" });
+  } catch (error) {
+    console.error("Deleting worker failed:", error);
+    res.status(500).json({ status: "error", message: "Failed to delete worker" });
   }
 });
 

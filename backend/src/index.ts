@@ -6,6 +6,7 @@ import { prisma } from "./db.js";
 import { advancesRouter } from "./routes/advances.js";
 import { authRouter } from "./routes/auth.js";
 import { documentsRouter } from "./routes/documents.js";
+import { reportsRouter } from "./routes/reports.js";
 import { workersRouter } from "./routes/workers.js";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
+app.use("/api/workers", reportsRouter);
 app.use("/api/workers", workersRouter);
 app.use("/api/workers", advancesRouter);
 app.use("/api/workers", documentsRouter);

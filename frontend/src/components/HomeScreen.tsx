@@ -60,16 +60,13 @@ const QUICK_ACTIONS = [
     ),
   },
   {
-    key: "settings",
-    label: "Settings",
+    key: "inactive-employees",
+    label: "Inactive Employees",
     icon: (
       <MenuIcon>
-        <circle cx="12" cy="12" r="3" />
-        <path
-          d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9c.2.6.7 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <circle cx="9" cy="8" r="3" />
+        <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" strokeLinecap="round" />
+        <path d="M16 8l4 4m0-4l-4 4" strokeLinecap="round" />
       </MenuIcon>
     ),
   },
@@ -194,6 +191,7 @@ export function HomeScreen() {
                 if (action.key === "create-employee") navigate("/workers/new");
                 if (action.key === "manage-employees") navigate("/manage/workers");
                 if (action.key === "reporting") navigate("/reports");
+                if (action.key === "inactive-employees") navigate("/manage/inactive");
               }}
               className="flex items-center gap-2 rounded-xl border border-ink/40 bg-white px-4 py-2.5 text-[13px] font-bold text-ink shadow-[0_6px_16px_rgba(28,25,23,0.18)]"
             >

@@ -1,10 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { CreateEmployeeScreen } from "./components/CreateEmployeeScreen";
+import { CreateReportPreferenceScreen } from "./components/CreateReportPreferenceScreen";
 import { HomeScreen } from "./components/HomeScreen";
+import { InactiveEmployeesScreen } from "./components/InactiveEmployeesScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { ManageEmployeeDetailScreen } from "./components/ManageEmployeeDetailScreen";
 import { ManageEmployeesScreen } from "./components/ManageEmployeesScreen";
 import { ReportConfigScreen } from "./components/ReportConfigScreen";
+import { ReportFieldPreferencesScreen } from "./components/ReportFieldPreferencesScreen";
 import { ReportingScreen } from "./components/ReportingScreen";
 import { RequireAuth } from "./components/RequireAuth";
 import { WorkerDetailScreen } from "./components/WorkerDetailScreen";
@@ -57,6 +60,14 @@ function App() {
             }
           />
           <Route
+            path="/manage/inactive"
+            element={
+              <RequireAuth>
+                <InactiveEmployeesScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/reports"
             element={
               <RequireAuth>
@@ -69,6 +80,22 @@ function App() {
             element={
               <RequireAuth>
                 <ReportConfigScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/reports/:format/preferences"
+            element={
+              <RequireAuth>
+                <ReportFieldPreferencesScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/reports/:format/preferences/new"
+            element={
+              <RequireAuth>
+                <CreateReportPreferenceScreen />
               </RequireAuth>
             }
           />
