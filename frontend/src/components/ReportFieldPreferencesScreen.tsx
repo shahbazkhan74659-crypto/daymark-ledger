@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getJson } from "../lib/api";
 import { REPORT_FIELD_DEFS } from "../types/report";
 import type { ReportFieldKey, ReportFieldPreference, ReportFormat } from "../types/report";
+
+type ConfigDraft = { from: string; to: string; selectedEmployeeIds: string[] };
 
 function BackIcon() {
   return (
@@ -34,7 +36,9 @@ function fieldsSummary(fields: Record<ReportFieldKey, boolean>): string {
 export function ReportFieldPreferencesScreen() {
   const { format: formatParam } = useParams<{ format: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const format = formatFromParam(formatParam);
+  const draft = (location.state as { draft?: ConfigDraft } | null)?.draft;
 
   const [preferences, setPreferences] = useState<ReportFieldPreference[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +55,7 @@ export function ReportFieldPreferencesScreen() {
   }
 
   function applyPreference(preference: ReportFieldPreference) {
-    navigate(`/reports/${formatParam}`, { state: { appliedFields: preference.fields } });
+    navigate(`/reports/${formatParam}`, { state: { appliedFields: preference.fields, draft } });
   }
 
   return (
@@ -61,6 +65,7 @@ export function ReportFieldPreferencesScreen() {
           <div className="flex items-center gap-3">
             <Link
               to={`/reports/${formatParam}`}
+              state={{ draft }}
               aria-label="Back to report config"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-page"
             >
@@ -71,7 +76,7 @@ export function ReportFieldPreferencesScreen() {
           <button
             type="button"
             aria-label="Create new preference"
-            onClick={() => navigate(`/reports/${formatParam}/preferences/new`)}
+            onClick={() => navigate(`/reports/${formatParam}/preferences/new`, { state: { draft } })}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-page text-ink transition-colors hover:bg-brand hover:text-white"
           >
             <PlusIcon />

@@ -295,3 +295,12 @@ These decisions were made during a prior discussion, before any code was written
 - Decision: English.
 - Reasoning: Owner's explicit direction; not otherwise elaborated.
 - Consequences: No localization/i18n framework is currently in scope.
+
+## Decision: Phase 19 testing approach — manual QA pass now, automated suite as separate follow-up, dedicated test database
+
+- Status: Accepted
+- Date: 2026-09-22
+- Context: Phase 19 ("Full End-to-End Testing") deliberately left its testing approach/tooling undecided in `PHASES.md`. No test framework has ever been installed in this codebase (Phases 1–18 were all verified via live Claude-in-Chrome browser checks plus direct HTTP requests). The owner was asked how to close out Phase 19 and chose "Both": run the manual/live QA pass now to satisfy Phase 19's existing completion criteria, and separately stand up an automated test suite (Vitest/Supertest for the backend, Playwright for the frontend) as follow-up infrastructure rather than a blocker. A follow-up question confirmed the automated suite should run against a dedicated local test database (e.g. `daymark_ledger_test`), not the real `daymark_ledger_dev` database, since the dev database holds real-ish worker data.
+- Decision: Phase 19 is closed out by a manual/live QA pass (no new dependencies) covering every flow and re-verifying every `ARCHITECTURE.md` invariant. The automated suite (Vitest + Supertest on the backend, Playwright E2E on the frontend) is tracked as separate infrastructure work, to be built against a dedicated `daymark_ledger_test` database, never `daymark_ledger_dev`.
+- Reasoning: Matches the verification style already used successfully for every prior phase, so Phase 19 doesn't introduce new tooling risk right at the end of the roadmap. Deferring the automated suite to a separate, non-blocking track avoids gating the roadmap's completion on writing and stabilizing an entirely new test harness. A dedicated test database keeps future automated test runs (which will create/delete data freely) from ever touching real dev/admin data.
+- Consequences: `backend/package.json` and `frontend/package.json` still have no test framework as of Phase 19's completion — the automated suite is a future task, not yet scheduled into a numbered phase. When it is built, it must provision and migrate `daymark_ledger_test` itself and must never point at `DATABASE_URL` values used by the real dev database.

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiError, postJson } from "../lib/api";
 import { DEFAULT_REPORT_FIELDS, REPORT_FIELD_DEFS } from "../types/report";
 import type { ReportFieldKey, ReportFieldPreference, ReportFormat } from "../types/report";
+
+type ConfigDraft = { from: string; to: string; selectedEmployeeIds: string[] };
 
 function BackIcon() {
   return (
@@ -21,7 +23,9 @@ function formatFromParam(param: string | undefined): ReportFormat | null {
 export function CreateReportPreferenceScreen() {
   const { format: formatParam } = useParams<{ format: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const format = formatFromParam(formatParam);
+  const draft = (location.state as { draft?: ConfigDraft } | null)?.draft;
 
   const [name, setName] = useState("");
   const [fields, setFields] = useState<Record<ReportFieldKey, boolean>>(DEFAULT_REPORT_FIELDS);
@@ -54,7 +58,7 @@ export function CreateReportPreferenceScreen() {
         { name, fields },
       );
 
-      navigate(`/reports/${formatParam}`, { state: { appliedFields: preference.fields } });
+      navigate(`/reports/${formatParam}`, { state: { appliedFields: preference.fields, draft } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save preference. Please try again.");
     } finally {
@@ -68,6 +72,7 @@ export function CreateReportPreferenceScreen() {
         <header className="flex shrink-0 items-center gap-3 border-b border-border bg-white px-4 py-4">
           <Link
             to={`/reports/${formatParam}/preferences`}
+            state={{ draft }}
             aria-label="Back to field preferences"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-page"
           >
@@ -114,6 +119,7 @@ export function CreateReportPreferenceScreen() {
           <div className="mt-auto flex gap-2.5">
             <Link
               to={`/reports/${formatParam}/preferences`}
+              state={{ draft }}
               className="flex h-[46px] flex-1 items-center justify-center rounded-[10px] border-[1.5px] border-border bg-white text-[14px] font-bold text-ink-muted"
             >
               Cancel

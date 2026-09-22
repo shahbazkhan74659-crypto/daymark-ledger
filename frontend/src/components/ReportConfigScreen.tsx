@@ -139,9 +139,17 @@ export function ReportConfigScreen() {
   }, []);
 
   useEffect(() => {
-    const state = location.state as { appliedFields?: Record<ReportFieldKey, boolean> } | null;
-    if (state?.appliedFields) {
-      setFields(state.appliedFields);
+    const state = location.state as {
+      appliedFields?: Record<ReportFieldKey, boolean>;
+      draft?: { from: string; to: string; selectedEmployeeIds: string[] };
+    } | null;
+    if (state?.appliedFields || state?.draft) {
+      if (state.appliedFields) setFields(state.appliedFields);
+      if (state.draft) {
+        setFrom(state.draft.from);
+        setTo(state.draft.to);
+        setSelectedEmployeeIds(new Set(state.draft.selectedEmployeeIds));
+      }
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location, navigate]);
@@ -262,7 +270,11 @@ export function ReportConfigScreen() {
 
           <button
             type="button"
-            onClick={() => navigate(`/reports/${formatParam}/preferences`)}
+            onClick={() =>
+              navigate(`/reports/${formatParam}/preferences`, {
+                state: { draft: { from, to, selectedEmployeeIds: Array.from(selectedEmployeeIds) } },
+              })
+            }
             className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-page text-ink">
