@@ -13,6 +13,14 @@ function BackIcon() {
   );
 }
 
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4">
+      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function TrashIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
@@ -32,6 +40,7 @@ export function InactiveEmployeesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingDelete, setPendingDelete] = useState<ManageWorker | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +67,18 @@ export function InactiveEmployeesScreen() {
       setError(err instanceof ApiError ? err.message : "Failed to delete employee. Please try again.");
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function activateEmployee(workerId: string) {
+    setActivatingId(workerId);
+    setError(null);
+    try {
+      await postJson(`/api/workers/${workerId}/status`, { status: "ACTIVE" });
+      setWorkers((current) => current.filter((w) => w.id !== workerId));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to activate employee. Please try again.");
+      setActivatingId(null);
     }
   }
 
@@ -109,12 +130,22 @@ export function InactiveEmployeesScreen() {
                     </span>
                     <button
                       type="button"
+                      aria-label={`Activate ${worker.fullName}`}
+                      onClick={() => activateEmployee(worker.id)}
+                      disabled={activatingId === worker.id}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50 disabled:opacity-60"
+                    >
+                      <CheckIcon />
+                    </button>
+                    <button
+                      type="button"
                       aria-label={`Delete ${worker.fullName}`}
                       onClick={() => {
                         setError(null);
                         setPendingDelete(worker);
                       }}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-50"
+                      disabled={activatingId === worker.id}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
                     >
                       <TrashIcon />
                     </button>

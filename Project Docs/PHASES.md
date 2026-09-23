@@ -4,6 +4,8 @@
 
 **Updated 2026-09-22 — development complete: every phase below (Phase 0 through Phase 19) is now Status: Complete.** The owner directed that the project be marked done as a development effort at this point. What remains is explicitly out of this roadmap's scope, not a gap in it: the automated test suite (Vitest/Supertest + Playwright) scoped alongside Phase 19 as separate, not-yet-scheduled follow-up infrastructure (see `DECISIONS.md`), and the still-open items tracked in `TASKS.md`'s "Next" section (PaaS hosting choice, personal-info field itemization, document category types, overtime/bonus/deduction scope, and the visual-only "Remember Me"/"Forgot Password?" login controls). Any further work on this project — including those follow-ups — is a new, separately-scoped effort requiring the owner's explicit direction, not a continuation of this roadmap.
 
+**Updated 2026-09-23 — development resuming: the owner's father (the actual end-user admin) has requested additional features beyond the Phase 0–19 roadmap.** Development is resuming as a continuation of the roadmap, not a "separate new effort." Phases 0–19 remain Status: Complete; new work will be scoped as Phase 20+ via separate owner consultation(s) per `CLAUDE.md` rule 3. See `DECISIONS.md`'s "Development resumed — new feature requests" entry for context.
+
 ## Phase 0 — Pre-Development (Discussion & Specification)
 
 ### Objective
@@ -331,3 +333,110 @@ End-to-end testing across every implemented flow: login/logout and session handl
 Every flow listed above works correctly end-to-end against the real local stack (frontend + backend + Phase 1 database), and every invariant above is confirmed holding across at least one realistic multi-feature scenario (e.g. create a worker, mark attendance across several dates including backfilled ones, log advances, deactivate and reactivate the worker, and confirm totals/history remain correct throughout).
 
 **Status: Complete** — 2026-09-22. Verified via a single continuous manual/live QA pass (Claude-in-Chrome browser checks + direct HTTP requests, no new test framework installed — matching how every prior phase was verified; see `DECISIONS.md`'s Phase 19 testing-approach entry). A throwaway worker ("QA Test Worker — Phase 19") was created and walked through the full lifecycle, then permanently deleted at the end; no real worker data was altered. Confirmed: login/logout/session handling including a 401 on an unauthenticated `GET /api/workers` and on `GET /api/auth/me` after logout; the home screen's list, inline today-status toggle (verified on a real worker, then reverted), and name search; Create New Employee; Worker Detail attendance marking across several dates including a backfilled past date, covering PRESENT/HALF/ABSENT, with half-day pay confirmed exactly 0.5× the per-day rate (₹250 on a ₹500 rate) and salary totals (`grossEarned`/`netEarned`/`advanceThisMonth`/`advanceThisYear`/`remainingOwed`) matching hand-calculated values exactly across advances logged in two different calendar months; Manage Employees personal-info save-on-blur (confirmed persisted after reload) and an Active→Inactive→Active reactivation cycle, after which every attendance/advance entry and total from Worker Detail was confirmed byte-for-byte unchanged; document upload/download/remove verified via direct HTTP (multipart upload, list, download with byte-identical content back, remove, confirmed empty after) since this session's browser automation couldn't drive the native file picker; Reporting — generated one PDF (2-month range, attendance field unchecked, confirmed the bordered-grid styling holds without the day-column block, 2-page PDF confirmed via `/Count 2`) and one Excel report, plus creating and applying a Field Preference; Inactive Employees — confirmed `POST /api/workers/:id/delete` 400s on a currently-ACTIVE real worker ("Only inactive workers can be deleted", real worker left untouched), then deactivated and permanently deleted the QA worker via the UI, confirming via direct HTTP that the worker and its attendance/advances all 404 afterward (cascade delete confirmed); a full HTTP validation sweep across every `auth`/`workers`/`advances`/`documents`/`reports` endpoint (bad login, missing/invalid fields, unknown ids, `from > to`, empty `fields`/`workerIds`, all-unknown `workerIds`) all returned the documented 400/401/404 with correct messages. All 7 `ARCHITECTURE.md` invariants re-confirmed holding together, not just per-endpoint. **One real bug was found and fixed during this pass:** using "Field Preference" on the Reporting config screen (either creating a new preference or applying an existing one) was silently resetting the already-chosen Date Range and Employee selection back to empty, because `ReportConfigScreen`'s `from`/`to`/`selectedEmployeeIds` are local component state that gets discarded on the route change to/from `/reports/:format/preferences`, and only the field checklist was being restored via router state on the way back. Fixed by threading a `draft` object (`from`/`to`/`selectedEmployeeIds`) through `location.state` across every navigation in and out of the Field Preference sub-flow (`ReportConfigScreen.tsx`, `ReportFieldPreferencesScreen.tsx`, `CreateReportPreferenceScreen.tsx`), the same pattern already used for round-tripping `appliedFields` — re-verified live afterward that a date range and employee selection set before opening Field Preferences now survive both the "create new" and "apply existing" paths. `npm run build` compiles cleanly on `frontend/` after the fix. The automated test suite (Vitest/Supertest + Playwright) remains unbuilt — tracked as separate follow-up infrastructure per the same `DECISIONS.md` entry, not a blocker for this phase's completion. This completes Phase 19 and the full Phase 0–19 roadmap.
+
+## Phase 20a — Advance Repayment Tracking Backend
+
+### Objective
+Build the backend to track and reduce the advance balance when an employee repays their advance — typically during salary distribution when the admin cuts the advance amount directly from the gross/net salary paid.
+
+### Scope
+Add backend endpoints and data model changes (scope TBD) to record when a worker repays their advance. Currently, advances are logged as individual dated entries (per `DECISIONS.md`'s Advance-uniqueness decision), and `remainingOwed` is calculated as all-time advances minus zero (there is no repayment tracking yet). This phase adds the mechanism to record repayment and update the `remainingOwed` balance accordingly.
+
+**Implementation approach: to be decided** — per the owner's direction, the mechanism is not yet locked down. Two possible approaches were discussed but not finalized:
+1. **Gross vs Net selection:** When distributing salary on a given date, the admin explicitly selects whether they're giving the employee Gross (meaning the employee did not repay advance that month — advance balance unchanged) or Net (meaning the employee is paying back their advance from salary — balance reduced by that month's advance amount). The backend calculates the repayment based on this selection and the existing `computeSalaryTotals()` logic.
+2. **Explicit repayment entry:** Some other mechanism (e.g. a separate "Advance Repayment" data model entry per worker per date, or a UI-based deduction workflow) — to be explored and decided.
+
+Once the implementation approach is decided, the scope will be expanded to define: where the repayment entry lives in the data model (`Advance` model changes vs. a new `Repayment` model), what backend endpoints are needed, which calculation fields change (e.g. does `remainingOwed` now decrease as repayments are logged?), and how the Phase 11 salary calculations are modified or extended.
+
+Explicitly excludes: the frontend UI to record repayment (Phase 20b).
+
+### Completion Criteria
+TBD — depends on implementation approach decision. Once decided, completion will involve: a working backend mechanism to record/update advance repayments (via new or modified endpoints), correct calculation of `remainingOwed` after repayments (no longer all-time-advances-only, now all-time-advances-minus-all-time-repayments), and end-to-end verification via direct HTTP requests that the admin can mark an advance as paid back and the `remainingOwed` figure decreases accordingly.
+
+**Status: Pending owner decision on implementation approach** — scope not yet expanded until the mechanism is decided. See `DECISIONS.md`'s "Phase 20a/20b scoped — advance repayment tracking" entry for context.
+
+## Phase 20b — Advance Repayment Tracking Frontend
+
+### Objective
+Build the frontend UI to record advance repayments, wired to the Phase 20a backend.
+
+### Scope
+Add frontend components/screens and workflow to let the admin record when a worker repays their advance. The UI shape and flow depend on which Phase 20a implementation approach (Gross vs Net selection, explicit repayment entry, or other) is decided — this phase will be scoped once the backend mechanism is locked.
+
+The frontend may involve:
+- Modifying the Worker Detail salary-distribution screen, or
+- Adding a new "Advance Repayment" entry flow, or
+- Some other UI placement/pattern
+
+Explicitly excludes: the backend mechanism and data model (Phase 20a).
+
+### Completion Criteria
+TBD — depends on Phase 20a's implementation approach. Once decided and Phase 20a is built, completion will involve: the admin can access the repayment recording UI from the appropriate screen (Worker Detail or elsewhere), enter/update/remove advance repayments, and see `remainingOwed` figures update correctly in real time — backed by real Phase 20a API calls, no mock data.
+
+**Status: Pending Phase 20a backend completion** — this phase cannot start until Phase 20a defines what endpoints/data are available to consume. See `DECISIONS.md`'s "Phase 20a/20b scoped — advance repayment tracking" entry for context.
+
+## Phase 21 — Advance Reason Tracking
+
+### Objective
+Add the ability to track and display the reason/purpose for which each advance was taken by an employee (e.g. "Medical emergency", "Rent payment", "Festival expense", etc.).
+
+### Scope
+Backend: Add a `reason` field (optional, text) to the `Advance` model and extend the advance-logging endpoints to accept and store a reason per advance entry. Add pagination support to the `GET /api/workers/:id/advances` endpoint (e.g. `?page=1&limit=10` or similar) to retrieve advances in batches rather than all at once. Frontend: Update the day-edit popup (where the admin logs an advance) to include an optional reason input field, and update the advance history list to display reason, date, and amount prominently (reason and amount as the primary display, date secondary). Add pagination controls (Previous/Next buttons or page numbers) to the advance history list so the admin can navigate through older advances without loading the entire history at once.
+
+Explicitly excludes: any validation or restrictions on reason text (it's optional and free-form).
+
+### Completion Criteria
+The admin can: (1) tap a calendar day to open the day-edit popup, log an advance amount, and optionally enter a reason; (2) save the advance with or without a reason; (3) view the advance history list where each entry shows the reason (or a placeholder like "—" if none was entered), the date, and the amount — reason and amount visually prominent, date compact; (4) navigate through paginated advance history using pagination controls (Previous/Next, page numbers, or similar), with each page loading from the backend via the paginated `GET /api/workers/:id/advances` endpoint. End-to-end verification via a live browser check and direct HTTP requests confirms the reason persists, retrieves correctly, pagination parameters work as expected, and the UI controls correctly load each page.
+
+**Status: Not started** — awaiting implementation. See `DECISIONS.md`'s "Phase 21 scoped — advance reason tracking" entry for context.
+
+## Phase 22 — Loading Skeletons & Placeholder UI
+
+### Objective
+Add loading skeleton UI components across the app to improve perceived performance and user experience while data is being fetched from the backend.
+
+### Scope
+**Backend:** Review existing API endpoints and response structures to ensure they return data efficiently. Optimize any endpoints that are slow or fetch unnecessary data (e.g. N+1 queries, over-fetching fields). Ensure consistent, fast response times across all endpoints that feed the frontend's loading states.
+
+**Frontend:** Identify all screen/component data-loading points where the admin currently waits for API responses (e.g. home screen worker list loading, Worker Detail screen calendar/totals/advance history loading, Manage Employees list loading, Reporting data loading, etc.) and replace the blank/empty state during loading with animated skeleton placeholders that match the final content's shape and layout. Skeleton components should animate (e.g. a subtle shimmer or pulse effect) to indicate ongoing loading activity, then immediately disappear and show the real content once the API response arrives.
+
+Explicitly excludes: error states during loading (those remain error banners/messages).
+
+### Completion Criteria
+**Backend:** All endpoints meet baseline performance (e.g. response time < 200ms under normal conditions). Any identified N+1 queries or over-fetching issues are resolved. Direct HTTP verification confirms endpoint response times and payloads.
+
+**Frontend:** Every screen that fetches data on mount or user action shows appropriate loading skeletons while data is in flight — home screen list shows skeleton rows, Worker Detail shows skeleton calendar cells/cards, Manage Employees shows skeleton list rows, Reporting shows skeleton form elements, etc. Skeletons animate visually (shimmer, pulse, or similar) to indicate loading in progress. Once data arrives, skeletons instantly disappear and real content displays. End-to-end verification via a live browser check (with network throttling if needed to see skeletons in action) confirms skeletons appear, animate, and clear correctly on every data-loading path. Backend performance improvements should be measurable (faster perceived load times on the frontend).
+
+**Status: Not started** — awaiting implementation. See `DECISIONS.md`'s "Phase 22 scoped — loading skeletons" entry for context.
+
+## Phase 23a — Public Employee Search Backend
+
+### Objective
+Build backend endpoints to enable public (unauthenticated) searching and retrieval of employee records by name, phone number, or UID (Unique ID).
+
+### Scope
+Create new unauthenticated API endpoints (no `requireSession` middleware) that allow searching the Worker database. Endpoints: `GET /api/public/workers/search?q=<query>` (searches by name, phone, or UID simultaneously), or separate endpoints per search type (TBD). Return worker data: name, designation, contact, joining date, per-day rate, status (Active/Inactive), and any other public-facing profile info. No sensitive backend data should be exposed. No authentication, login, or session requirements for these endpoints — they are fully public.
+
+Explicitly excludes: authentication/login for this search feature, advance data visibility (employees shouldn't see others' advances), document access (no file/document retrieval via public endpoints), salary calculations (only the rate, not the calculated totals).
+
+### Completion Criteria
+Public search endpoints return correct, filtered worker records without requiring authentication. Searching by name finds partial/full matches (case-insensitive). Searching by phone/UID finds exact matches. End-to-end verification via direct HTTP requests confirms the endpoints work and return appropriate data for both found and not-found cases.
+
+**Status: Not started** — awaiting implementation. See `DECISIONS.md`'s "Phase 23a/23b scoped — public employee search" entry for context.
+
+## Phase 23b — Public Employee Search Frontend
+
+### Objective
+Build a public-facing UI where anyone can search for employee records and view their profile data read-only.
+
+### Scope
+Create a new, unauthenticated section of the app (separate from the admin login area) accessible at a public URL (e.g. `/public/search` or `/employee-search`). The interface allows searching by name, phone number, or UID via a search input. Display search results as a list of matching employees. Tapping/selecting an employee opens their read-only profile card showing: name, designation, contact, joining date, per-day rate, status. Explicitly excludes: any editing, advance/salary data, document access, or admin-only features.
+
+Frontend routing: decide whether the public search section is on the same login flow as admin (with a "Public Search" entry point before login), or a completely separate route/domain (TBD during implementation per owner feedback).
+
+Explicitly excludes: the admin login screen and admin-only features (Manage Employees, Reporting, etc.).
+
+### Completion Criteria
+The public search UI is reachable and functional: search input accepts queries by name/phone/UID, displays matching results, tapping an employee shows their read-only profile with name/designation/contact/joining date/rate/status. No admin features are accessible from this section. End-to-end verification via a live browser check confirms the search and profile display work correctly, and no authentication is required.
+
+**Status: Not started** — awaiting implementation. See `DECISIONS.md`'s "Phase 23a/23b scoped — public employee search" entry for context.
