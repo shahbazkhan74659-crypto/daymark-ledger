@@ -75,7 +75,7 @@ export function ReportingScreen() {
               key={option.format}
               type="button"
               onClick={() => navigate(`/reports/${option.format}`)}
-              className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-border bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+              className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-border bg-white p-4 text-left shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
             >
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${option.iconBg}`}>
                 {option.icon}

@@ -64,7 +64,7 @@ function monthKey(year: number, month: number): string {
 export async function assembleReportData(workerIds: string[], from: Date, to: Date): Promise<ReportData> {
   const months = enumerateMonthSections(from, to);
 
-  const [workers, attendances, advances] = await Promise.all([
+  const [workers, attendances, advances, repayments] = await Promise.all([
     prisma.worker.findMany({ where: { id: { in: workerIds } }, orderBy: { fullName: "asc" } }),
     prisma.attendance.findMany({
       where: { workerId: { in: workerIds }, date: { gte: from, lte: to } },
@@ -73,6 +73,10 @@ export async function assembleReportData(workerIds: string[], from: Date, to: Da
     prisma.advance.findMany({
       where: { workerId: { in: workerIds } },
       select: { workerId: true, date: true, amount: true },
+    }),
+    prisma.advanceRepayment.findMany({
+      where: { workerId: { in: workerIds } },
+      select: { workerId: true, amount: true },
     }),
   ]);
 
@@ -92,9 +96,18 @@ export async function assembleReportData(workerIds: string[], from: Date, to: Da
     advancesByWorker.get(advance.workerId)!.push({ date: advance.date, amount: Number(advance.amount) });
   }
 
+  const repaymentsByWorker = new Map<string, { amount: number }[]>();
+  for (const repayment of repayments) {
+    if (!repaymentsByWorker.has(repayment.workerId)) {
+      repaymentsByWorker.set(repayment.workerId, []);
+    }
+    repaymentsByWorker.get(repayment.workerId)!.push({ amount: Number(repayment.amount) });
+  }
+
   const rows: ReportWorkerRow[] = workers.map((worker) => {
     const workerAttendanceByDate = attendanceByWorker.get(worker.id) ?? new Map();
     const workerAdvances = advancesByWorker.get(worker.id) ?? [];
+    const workerRepayments = repaymentsByWorker.get(worker.id) ?? [];
     const perDayRate = Number(worker.perDayRate);
 
     const monthTotals = new Map<string, SalaryTotals>();
@@ -108,7 +121,7 @@ export async function assembleReportData(workerIds: string[], from: Date, to: Da
 
       monthTotals.set(
         monthKey(section.year, section.month),
-        computeSalaryTotals(monthAttendances, workerAdvances, perDayRate, section.year, section.month),
+        computeSalaryTotals(monthAttendances, workerAdvances, workerRepayments, perDayRate, section.year, section.month),
       );
     }
 

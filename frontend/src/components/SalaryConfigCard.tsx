@@ -30,7 +30,7 @@ export function SalaryConfigCard({
   }
 
   return (
-    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
       <p className="mb-2.5 text-[11px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">
         Salary Configuration
       </p>

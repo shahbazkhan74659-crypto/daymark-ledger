@@ -238,7 +238,7 @@ export function ReportConfigScreen() {
         </header>
 
         <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto p-4">
-          <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+          <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
             <p className="text-[12px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">Date Range</p>
             <div className="flex items-center justify-center gap-4 py-1">
               <div className="flex flex-col items-center gap-1.5">
@@ -260,7 +260,7 @@ export function ReportConfigScreen() {
               setEmployeeSearchQuery("");
               setEmployeePickerOpen(true);
             }}
-            className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+            className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-page text-ink">
               <PersonIcon />
@@ -275,7 +275,7 @@ export function ReportConfigScreen() {
                 state: { draft: { from, to, selectedEmployeeIds: Array.from(selectedEmployeeIds) } },
               })
             }
-            className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+            className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-page text-ink">
               <BookmarkIcon />
@@ -283,7 +283,7 @@ export function ReportConfigScreen() {
             <span className="text-[14px] font-bold text-ink">Field Preference</span>
           </button>
 
-          <div className="rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+          <div className="rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
             <p className="mb-1 text-[12px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">
               Fields to Include
             </p>

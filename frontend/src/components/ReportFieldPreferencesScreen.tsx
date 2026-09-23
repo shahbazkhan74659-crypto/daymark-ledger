@@ -97,7 +97,7 @@ export function ReportFieldPreferencesScreen() {
                   key={preference.id}
                   type="button"
                   onClick={() => applyPreference(preference)}
-                  className="flex flex-col gap-1 rounded-2xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+                  className="flex flex-col gap-1 rounded-2xl bg-white p-4 text-left shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
                 >
                   <span className="text-[14px] font-bold text-ink">{preference.name}</span>
                   <span className="text-[12px] font-medium text-ink-faint">{fieldsSummary(preference.fields)}</span>

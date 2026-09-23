@@ -5,7 +5,7 @@ export function AdvanceHistoryList({ advances }: { advances: Advance[] }) {
   const sorted = [...advances].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
   return (
-    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
       <p className="mb-1 text-[11px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">Advance History</p>
 
       {sorted.length === 0 ? (

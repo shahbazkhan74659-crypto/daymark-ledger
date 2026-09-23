@@ -423,17 +423,19 @@ workersRouter.get("/:id/salary-summary", requireSession, async (req, res) => {
     }
 
     const { start, end } = monthDateRange(period.year, period.month);
-    const [attendances, advances] = await Promise.all([
+    const [attendances, advances, repayments] = await Promise.all([
       prisma.attendance.findMany({
         where: { workerId: id, date: { gte: start, lt: end } },
         select: { status: true },
       }),
       prisma.advance.findMany({ where: { workerId: id }, select: { date: true, amount: true } }),
+      prisma.advanceRepayment.findMany({ where: { workerId: id }, select: { amount: true } }),
     ]);
 
     const totals = computeSalaryTotals(
       attendances,
       advances.map((advance) => ({ date: advance.date, amount: Number(advance.amount) })),
+      repayments.map((r) => ({ amount: Number(r.amount) })),
       Number(worker.perDayRate),
       period.year,
       period.month,

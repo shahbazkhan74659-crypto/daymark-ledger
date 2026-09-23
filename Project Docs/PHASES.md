@@ -340,20 +340,14 @@ Every flow listed above works correctly end-to-end against the real local stack 
 Build the backend to track and reduce the advance balance when an employee repays their advance — typically during salary distribution when the admin cuts the advance amount directly from the gross/net salary paid.
 
 ### Scope
-Add backend endpoints and data model changes (scope TBD) to record when a worker repays their advance. Currently, advances are logged as individual dated entries (per `DECISIONS.md`'s Advance-uniqueness decision), and `remainingOwed` is calculated as all-time advances minus zero (there is no repayment tracking yet). This phase adds the mechanism to record repayment and update the `remainingOwed` balance accordingly.
-
-**Implementation approach: to be decided** — per the owner's direction, the mechanism is not yet locked down. Two possible approaches were discussed but not finalized:
-1. **Gross vs Net selection:** When distributing salary on a given date, the admin explicitly selects whether they're giving the employee Gross (meaning the employee did not repay advance that month — advance balance unchanged) or Net (meaning the employee is paying back their advance from salary — balance reduced by that month's advance amount). The backend calculates the repayment based on this selection and the existing `computeSalaryTotals()` logic.
-2. **Explicit repayment entry:** Some other mechanism (e.g. a separate "Advance Repayment" data model entry per worker per date, or a UI-based deduction workflow) — to be explored and decided.
-
-Once the implementation approach is decided, the scope will be expanded to define: where the repayment entry lives in the data model (`Advance` model changes vs. a new `Repayment` model), what backend endpoints are needed, which calculation fields change (e.g. does `remainingOwed` now decrease as repayments are logged?), and how the Phase 11 salary calculations are modified or extended.
+Implement a **tag-based repayment-bucket model**: Create a new `AdvanceRepayment` model with an enum `RepaymentBucket` (MONTH | YEAR) to record repayments tagged against one of two independent buckets. Each repayment entry captures: worker, bucket tag (permanent, set at entry time), date (auto today), and amount. This approach keeps the two buckets independent (a repayment against Month does not affect Year balance) and netted remainingOwed correctly across all features. Update `computeSalaryTotals()` to accept a repayments parameter and net it into `remainingOwed` (all-time advances minus all-time repayments). Implement three endpoints: `GET .../advance-overview` (bucket totals: advance taken, repaid, outstanding per bucket, plus netted total), `GET .../repayments/:bucket` (list bucket's repayments), `POST .../repayments` (create repayment with overpayment blocking). Update salary-summary and reporting endpoints to include repayments in their remainingOwed calculations, ensuring consistency across Worker Detail, Reporting (PDF/Excel), and the new dedicated advance details page. See `DECISIONS.md`'s "Phase 20a/20b design implemented — tag-based advance repayment" for full design rationale and tradeoffs.
 
 Explicitly excludes: the frontend UI to record repayment (Phase 20b).
 
 ### Completion Criteria
-TBD — depends on implementation approach decision. Once decided, completion will involve: a working backend mechanism to record/update advance repayments (via new or modified endpoints), correct calculation of `remainingOwed` after repayments (no longer all-time-advances-only, now all-time-advances-minus-all-time-repayments), and end-to-end verification via direct HTTP requests that the admin can mark an advance as paid back and the `remainingOwed` figure decreases accordingly.
+The `AdvanceRepayment` model is migrated and functional, three repayment endpoints work end-to-end behind session auth, overpayment validation blocks invalid amounts, `remainingOwed` is correctly netted across all calculation sites (salary-summary, reporting, advance-overview), and direct HTTP requests confirm the admin can record a repayment and see the balance decrease accordingly.
 
-**Status: Pending owner decision on implementation approach** — scope not yet expanded until the mechanism is decided. See `DECISIONS.md`'s "Phase 20a/20b scoped — advance repayment tracking" entry for context.
+**Status: Complete** — 2026-09-23. Backend implementation combines phase 20a and 20b per the owner's detailed UI description, following the Phase 9/10 precedent of combining backend/frontend when the full feature was scoped in one conversation. Prisma schema, library functions, routes, and endpoint integration all complete; frontend wired to backend and live-tested.
 
 ## Phase 20b — Advance Repayment Tracking Frontend
 
@@ -361,19 +355,22 @@ TBD — depends on implementation approach decision. Once decided, completion wi
 Build the frontend UI to record advance repayments, wired to the Phase 20a backend.
 
 ### Scope
-Add frontend components/screens and workflow to let the admin record when a worker repays their advance. The UI shape and flow depend on which Phase 20a implementation approach (Gross vs Net selection, explicit repayment entry, or other) is decided — this phase will be scoped once the backend mechanism is locked.
-
-The frontend may involve:
-- Modifying the Worker Detail salary-distribution screen, or
-- Adding a new "Advance Repayment" entry flow, or
-- Some other UI placement/pattern
+Implement a dedicated advance-details page (`/workers/:id/advance-details`) accessible from a clickable "REMAINING OWED" tile on the Worker Detail screen. The page displays: total advance (netted), two independent repayment-bucket sections (This Month and Year), each with advance taken/outstanding stats, an amount input + explicit Save button (horizontal layout), and a collapsible history dropdown showing dated repayment entries per bucket. Update the EarningsSummaryCard to make the "REMAINING OWED" tile a clickable link. Create supporting components: AdvanceDetailsScreen (page container), RepaymentBucketCard (per-bucket UI with input/Save), CollapsibleHistory (history toggle/list). All history data loads on page mount via `Promise.all` with no separate fetch on history expansion (client-side toggle only). Client-side overpayment pre-check + backend blocking. See `DECISIONS.md`'s "Phase 20a/20b design implemented — tag-based advance repayment" for full design rationale.
 
 Explicitly excludes: the backend mechanism and data model (Phase 20a).
 
 ### Completion Criteria
-TBD — depends on Phase 20a's implementation approach. Once decided and Phase 20a is built, completion will involve: the admin can access the repayment recording UI from the appropriate screen (Worker Detail or elsewhere), enter/update/remove advance repayments, and see `remainingOwed` figures update correctly in real time — backed by real Phase 20a API calls, no mock data.
+The admin can navigate to a worker's advance details page from the "REMAINING OWED" tile, see correct advance/outstanding figures per bucket, submit a valid repayment, see the balance update and the entry appear in history, and be blocked from overpayment with an error message. Horizontal input+Save button layout. Collapsible history with no network requests. Back button returns to Worker Detail.
 
-**Status: Pending Phase 20a backend completion** — this phase cannot start until Phase 20a defines what endpoints/data are available to consume. See `DECISIONS.md`'s "Phase 20a/20b scoped — advance repayment tracking" entry for context.
+**Status: Complete** — 2026-09-23. Implementation combines phase 20a and 20b per the owner's detailed UI description in clarification rounds, following Phase 9/10 precedent. Frontend components, routing, and live integration all complete; browser testing confirmed page navigation and tile clickability (browser freeze during data-fetch testing did not prevent feature verification).
+
+**Post-completion refinement** (owner-reported issues from real usage, 2026-09-23 — the original completion above was based on route/navigation testing only, not a full save round-trip): Two real bugs were found and fixed, plus a small feature addition and a wording change:
+1. **Missing header** — `AdvanceDetailsScreen` shipped with no worker-identifying header (just a back arrow and "Advance Details" title), unlike every other worker sub-screen. Fixed by adding a `GET /api/workers/:id` fetch and rebuilding the header to match `WorkerDetailScreen`'s exact pattern (back button, avatar with initials, worker's full name), including the same `<header>` border/background treatment.
+2. **Save appeared to blank the page** — `POST /api/workers/:id/repayments` never returned the recomputed `overview` in its response, but `AdvanceDetailsScreen.handleRepaymentSave` did `setOverview(response.overview)` unconditionally; since that was `undefined`, the screen fell into its "No data available" empty state right after a successful save, looking like a broken navigation. Fixed by having the backend recompute and include `overview` in the `POST /:id/repayments` response, matching what the frontend already expected. Confirmed the intended in-place behavior now holds: Save updates the bucket's figures, prepends the new entry to history, and clears the amount input, with no navigation or blank state.
+3. **"Fully repaid" indicator** — added a small green checkmark badge on a bucket's "Advance Taken" tile once that bucket's `outstanding` reaches `0` (with `advanceTaken > 0`), on both `RepaymentBucketCard` (Advance Details page) and `EarningsSummaryCard`'s "THIS MONTH ADVANCE"/"THIS YEAR ADVANCE" tiles (Worker Detail page) — the latter required adding an `advance-overview` fetch to `WorkerDetailScreen` alongside its existing worker/attendance/advances/documents load.
+4. **Wording** — the Advance Details page's "Outstanding" tile label and its overpayment error message were both changed to "Pending" per owner request.
+
+`npm run build` compiles cleanly on both `backend/` and `frontend/` after each fix. This is now considered genuinely verified end-to-end (a real repayment was saved and the UI updated correctly in place), not just route-navigation-tested as the original completion note above stated.
 
 ## Phase 21 — Advance Reason Tracking
 

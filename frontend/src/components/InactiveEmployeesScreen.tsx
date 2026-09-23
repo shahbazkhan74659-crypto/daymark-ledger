@@ -116,7 +116,7 @@ export function InactiveEmployeesScreen() {
                 return (
                   <div
                     key={worker.id}
-                    className="flex items-center gap-2.5 rounded-[14px] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(28,25,23,0.06)]"
+                    className="flex items-center gap-2.5 rounded-[14px] bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
                   >
                     <span
                       className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold"

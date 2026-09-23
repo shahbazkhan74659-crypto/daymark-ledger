@@ -13,6 +13,7 @@ function round2(value: number): number {
 export function computeSalaryTotals(
   attendances: { status: "PRESENT" | "HALF" | "ABSENT" }[],
   advances: { date: Date; amount: number }[],
+  repayments: { amount: number }[],
   perDayRate: number,
   year: number,
   month: number,
@@ -38,11 +39,16 @@ export function computeSalaryTotals(
     }
   }
 
+  let repaidAll = 0;
+  for (const repayment of repayments) {
+    repaidAll += repayment.amount;
+  }
+
   return {
     grossEarned: round2(grossEarned),
     netEarned: round2(grossEarned - advanceThisMonth),
     advanceThisMonth: round2(advanceThisMonth),
     advanceThisYear: round2(advanceThisYear),
-    remainingOwed: round2(advanceAll),
+    remainingOwed: round2(Math.max(0, advanceAll - repaidAll)),
   };
 }

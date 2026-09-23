@@ -59,3 +59,23 @@ export type CreateWorkerInput = {
 };
 
 export type CreatedWorker = CreateWorkerInput & { id: string; status: WorkerStatus };
+
+export type RepaymentBucket = "MONTH" | "YEAR";
+
+export type BucketOverview = {
+  advanceTaken: number;
+  repaid: number;
+  outstanding: number;
+};
+
+export type AdvanceOverview = {
+  totalAdvance: number;
+  month: BucketOverview;
+  year: BucketOverview;
+};
+
+export type Repayment = {
+  id: string;
+  date: string;
+  amount: number;
+};

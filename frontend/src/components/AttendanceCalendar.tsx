@@ -64,7 +64,7 @@ export function AttendanceCalendar({
   }
 
   return (
-    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
       <div className="mb-3 flex items-center justify-between">
         <button
           type="button"

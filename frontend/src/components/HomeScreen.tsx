@@ -40,6 +40,16 @@ function MenuIcon({ children }: { children: React.ReactNode }) {
 
 const QUICK_ACTIONS = [
   {
+    key: "create-employee",
+    label: "Create New Employee",
+    icon: (
+      <MenuIcon>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v8M8 12h8" strokeLinecap="round" />
+      </MenuIcon>
+    ),
+  },
+  {
     key: "manage-employees",
     label: "Manage Employees",
     icon: (
@@ -47,15 +57,6 @@ const QUICK_ACTIONS = [
         <circle cx="9" cy="8" r="3" />
         <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" strokeLinecap="round" />
         <path d="M16 6.5a3 3 0 0 1 0 5.8M20 20c0-2.6-1.8-4.8-4.3-5.6" strokeLinecap="round" />
-      </MenuIcon>
-    ),
-  },
-  {
-    key: "reporting",
-    label: "Reporting",
-    icon: (
-      <MenuIcon>
-        <path d="M4 20V10M12 20V4M20 20v-7" strokeLinecap="round" />
       </MenuIcon>
     ),
   },
@@ -71,12 +72,11 @@ const QUICK_ACTIONS = [
     ),
   },
   {
-    key: "create-employee",
-    label: "Create New Employee",
+    key: "reporting",
+    label: "Reporting",
     icon: (
       <MenuIcon>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 8v8M8 12h8" strokeLinecap="round" />
+        <path d="M4 20V10M12 20V4M20 20v-7" strokeLinecap="round" />
       </MenuIcon>
     ),
   },

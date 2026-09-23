@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AdvanceDetailsScreen } from "./components/AdvanceDetailsScreen";
 import { CreateEmployeeScreen } from "./components/CreateEmployeeScreen";
 import { CreateReportPreferenceScreen } from "./components/CreateReportPreferenceScreen";
 import { HomeScreen } from "./components/HomeScreen";
@@ -40,6 +41,14 @@ function App() {
             element={
               <RequireAuth>
                 <WorkerDetailScreen />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/workers/:id/advance-details"
+            element={
+              <RequireAuth>
+                <AdvanceDetailsScreen />
               </RequireAuth>
             }
           />

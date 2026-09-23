@@ -15,7 +15,7 @@ export function WorkerRow({
   const palette = AVATAR_PALETTE[hashToIndex(worker.id, AVATAR_PALETTE.length)];
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-[16px] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(28,25,23,0.06)]">
+    <div className="flex items-center justify-between gap-2 rounded-[16px] bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
       <Link to={`/workers/${worker.id}`} className="flex min-w-0 flex-1 items-center gap-2.5">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"

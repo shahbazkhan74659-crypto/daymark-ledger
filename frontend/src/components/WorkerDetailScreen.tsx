@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { AVATAR_PALETTE, getInitials, hashToIndex } from "../lib/avatar";
 import { ApiError, getJson, postJson } from "../lib/api";
 import { MONTH_NAMES } from "../lib/calendar";
-import type { Advance, AttendanceRecord, AttendanceStatus, SalaryTotals, WorkerDetail, WorkerDocument } from "../types/worker";
+import type { AdvanceOverview, Advance, AttendanceRecord, AttendanceStatus, SalaryTotals, WorkerDetail, WorkerDocument } from "../types/worker";
 import { AdvanceHistoryList } from "./AdvanceHistoryList";
 import { AttendanceCalendar } from "./AttendanceCalendar";
 import { DayEditPopup } from "./DayEditPopup";
@@ -45,6 +45,7 @@ export function WorkerDetailScreen() {
   const [advances, setAdvances] = useState<Advance[]>([]);
   const [documents, setDocuments] = useState<WorkerDocument[]>([]);
   const [totals, setTotals] = useState<SalaryTotals | null>(null);
+  const [advanceOverview, setAdvanceOverview] = useState<AdvanceOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<WorkerDocument | null>(null);
@@ -60,12 +61,14 @@ export function WorkerDetailScreen() {
       getJson<{ attendance: AttendanceRecord[] }>(`/api/workers/${workerId}/attendance`),
       getJson<{ advances: Advance[] }>(`/api/workers/${workerId}/advances`),
       getJson<{ documents: WorkerDocument[] }>(`/api/workers/${workerId}/documents`),
+      getJson<{ worker: AdvanceOverview }>(`/api/workers/${workerId}/advance-overview`),
     ])
-      .then(([workerRes, attendanceRes, advancesRes, documentsRes]) => {
+      .then(([workerRes, attendanceRes, advancesRes, documentsRes, overviewRes]) => {
         setWorker(workerRes.worker);
         setAttendance(attendanceRes.attendance);
         setAdvances(advancesRes.advances);
         setDocuments(documentsRes.documents);
+        setAdvanceOverview(overviewRes.worker);
       })
       .catch((err) => {
         console.error("Failed to load worker detail:", err);
@@ -170,7 +173,12 @@ export function WorkerDetailScreen() {
                   onDayTap={(date) => setSelectedDate(date)}
                 />
                 <SalaryConfigCard perDayRate={worker.perDayRate} onSave={handleRateSave} />
-                <EarningsSummaryCard totals={totals} monthLabel={`${MONTH_NAMES[month - 1]} ${year}`} />
+                <EarningsSummaryCard
+                  totals={totals}
+                  monthLabel={`${MONTH_NAMES[month - 1]} ${year}`}
+                  workerId={workerId}
+                  advanceOverview={advanceOverview}
+                />
                 <AdvanceHistoryList advances={advances} />
               </div>
             )
