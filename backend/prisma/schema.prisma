@@ -48,6 +48,7 @@ enum RepaymentBucket {
 
 model Worker {
   id                  String               @id @default(cuid())
+  employeeCode        String               @unique
   fullName            String
   designation         String
   contact             String

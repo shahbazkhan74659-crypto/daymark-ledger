@@ -7,6 +7,7 @@ import { InactiveEmployeesScreen } from "./components/InactiveEmployeesScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { ManageEmployeeDetailScreen } from "./components/ManageEmployeeDetailScreen";
 import { ManageEmployeesScreen } from "./components/ManageEmployeesScreen";
+import { PublicSearchScreen } from "./components/PublicSearchScreen";
 import { ReportConfigScreen } from "./components/ReportConfigScreen";
 import { ReportFieldPreferencesScreen } from "./components/ReportFieldPreferencesScreen";
 import { ReportingScreen } from "./components/ReportingScreen";
@@ -20,6 +21,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginScreen />} />
+          <Route path="/employee-search" element={<PublicSearchScreen />} />
           <Route
             path="/"
             element={

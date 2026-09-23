@@ -24,6 +24,10 @@ export function PersonalInfoCard({
         Personal Information
       </p>
       <div className="flex items-center justify-between py-1.5">
+        <span className="text-[13px] text-ink-muted">Employee code</span>
+        <span className="text-[13px] font-bold text-ink">{worker.employeeCode}</span>
+      </div>
+      <div className="flex items-center justify-between py-1.5">
         <span className="text-[13px] text-ink-muted">Name</span>
         <span className="text-[13px] font-bold text-ink">{worker.fullName}</span>
       </div>

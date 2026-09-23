@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getJson } from "../lib/api";
 import { formatDayLabel, formatINR } from "../lib/format";
+import { SkeletonBlock } from "./Skeleton";
 import type { PaginatedAdvances } from "../types/worker";
 
 const PAGE_SIZE = 10;
@@ -38,7 +39,17 @@ export function AdvanceHistoryList({ workerId, refreshKey }: { workerId: string;
       <p className="mb-1 text-[11px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">Advance History</p>
 
       {loading && advances.length === 0 ? (
-        <p className="py-3 text-center text-xs text-stone-400 italic">Loading…</p>
+        <div className="divide-y divide-[#f0efed]">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-2.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <SkeletonBlock className="h-3.5 w-24" />
+                <SkeletonBlock className="h-2.5 w-16" />
+              </div>
+              <SkeletonBlock className="h-3.5 w-12 shrink-0" />
+            </div>
+          ))}
+        </div>
       ) : advances.length === 0 ? (
         <p className="py-3 text-center text-xs text-stone-400 italic">No advances recorded yet</p>
       ) : (

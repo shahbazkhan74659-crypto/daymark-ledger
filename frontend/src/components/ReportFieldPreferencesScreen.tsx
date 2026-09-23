@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getJson } from "../lib/api";
+import { SkeletonBlock } from "./Skeleton";
 import { REPORT_FIELD_DEFS } from "../types/report";
 import type { ReportFieldKey, ReportFieldPreference, ReportFormat } from "../types/report";
 
@@ -85,7 +86,17 @@ export function ReportFieldPreferencesScreen() {
 
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
-            <p className="py-2 text-[13px] text-ink-faint">Loading…</p>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]"
+                >
+                  <SkeletonBlock className="h-3.5 w-[45%]" />
+                  <SkeletonBlock className="h-3 w-[70%]" />
+                </div>
+              ))}
+            </div>
           ) : preferences.length === 0 ? (
             <p className="py-2 text-[13px] text-ink-faint">
               No saved preferences yet. Tap + to create one for the Fields to Include section.

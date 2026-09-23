@@ -128,6 +128,7 @@ export function LoginScreen() {
             />
             Remember Me
           </label>
+          {/* "See Your Attendance" public search entry point temporarily hidden per owner request — route/backend left intact, see DECISIONS.md */}
 
           <button
             type="submit"

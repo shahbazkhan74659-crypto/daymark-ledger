@@ -72,6 +72,9 @@ export function ManagePersonalInfoCard({
       <p className="text-[12px] font-extrabold tracking-[0.04em] text-stone-400 uppercase">
         Personal Information
       </p>
+      <Field label="Employee code">
+        <p className={`${inputClass} text-ink-muted`}>{worker.employeeCode}</p>
+      </Field>
       <Field label="Full name">
         <input
           value={fullName}

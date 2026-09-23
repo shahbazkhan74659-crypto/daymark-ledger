@@ -5,6 +5,7 @@ import { ApiError, getJson, postJson } from "../lib/api";
 import { formatINR } from "../lib/format";
 import type { AdvanceOverview, Repayment, WorkerDetail } from "../types/worker";
 import { RepaymentBucketCard } from "./RepaymentBucketCard";
+import { SkeletonBlock, SkeletonCircle } from "./Skeleton";
 
 function BackIcon() {
   return (
@@ -26,6 +27,25 @@ function NotFoundScreen() {
           Back to home
         </Link>
       </div>
+    </div>
+  );
+}
+
+function BucketCardSkeleton() {
+  return (
+    <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+      <SkeletonBlock className="mb-2.5 h-3.5 w-32" />
+      <div className="mb-2.5 grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-page p-3">
+          <SkeletonBlock className="mb-2 h-2.5 w-16" />
+          <SkeletonBlock className="h-4 w-16" />
+        </div>
+        <div className="rounded-xl bg-page p-3">
+          <SkeletonBlock className="mb-2 h-2.5 w-16" />
+          <SkeletonBlock className="h-4 w-16" />
+        </div>
+      </div>
+      <SkeletonBlock className="h-11 w-full rounded-xl" />
     </div>
   );
 }
@@ -97,7 +117,7 @@ export function AdvanceDetailsScreen() {
           >
             <BackIcon />
           </Link>
-          {worker && (
+          {worker ? (
             <>
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -107,12 +127,26 @@ export function AdvanceDetailsScreen() {
               </span>
               <span className="truncate text-base font-extrabold text-ink">{worker.fullName}</span>
             </>
+          ) : (
+            loading && (
+              <>
+                <SkeletonCircle size={36} />
+                <SkeletonBlock className="h-4 w-32" />
+              </>
+            )
           )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 pt-3.5 pb-6">
           {loading ? (
-            <p className="text-sm text-ink-faint">Loading…</p>
+            <div className="flex flex-col gap-3.5">
+              <div className="rounded-xl bg-brand-tint p-3">
+                <SkeletonBlock className="mb-2 h-2.5 w-24" />
+                <SkeletonBlock className="h-6 w-28" />
+              </div>
+              <BucketCardSkeleton />
+              <BucketCardSkeleton />
+            </div>
           ) : overview ? (
             <div className="flex flex-col gap-3.5">
               <div className="rounded-xl bg-brand-tint p-3">

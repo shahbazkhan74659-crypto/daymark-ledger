@@ -9,12 +9,25 @@ export type Worker = {
 
 export type WorkerDetail = {
   id: string;
+  employeeCode: string;
   fullName: string;
   designation: string;
   contact: string;
   joiningDate: string;
   perDayRate: number;
   status: WorkerStatus;
+};
+
+export type PublicWorker = {
+  id: string;
+  employeeCode: string;
+  fullName: string;
+  designation: string;
+  status: WorkerStatus;
+};
+
+export type PublicAdvanceDate = {
+  date: string;
 };
 
 export type ManageWorker = {

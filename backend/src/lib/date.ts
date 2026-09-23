@@ -31,3 +31,21 @@ export function monthDateRange(year: number, month: number): { start: Date; end:
   const end = new Date(Date.UTC(year, month, 1));
   return { start, end };
 }
+
+export function parseYearMonthQuery(query: Record<string, unknown>): { year: number; month: number } | null {
+  const { year: yearParam, month: monthParam } = query;
+
+  if (yearParam === undefined && monthParam === undefined) {
+    const today = todayDateOnly();
+    return { year: today.getUTCFullYear(), month: today.getUTCMonth() + 1 };
+  }
+
+  if (yearParam === undefined || monthParam === undefined) return null;
+
+  const year = Number(yearParam);
+  const month = Number(monthParam);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+
+  return { year, month };
+}

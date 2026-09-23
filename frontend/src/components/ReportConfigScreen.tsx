@@ -6,6 +6,7 @@ import { DEFAULT_REPORT_FIELDS, REPORT_FIELD_DEFS } from "../types/report";
 import type { ReportFieldKey, ReportFormat } from "../types/report";
 import type { ManageWorker } from "../types/worker";
 import { SearchBar } from "./SearchBar";
+import { SkeletonBlock } from "./Skeleton";
 
 function BackIcon() {
   return (
@@ -359,7 +360,17 @@ export function ReportConfigScreen() {
                   )}
                 </div>
                 {employeesLoading ? (
-                  <p className="py-2 text-[13px] text-ink-faint">Loading…</p>
+                  <div className="flex flex-col gap-3 py-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-2.5">
+                        <SkeletonBlock className="h-[18px] w-[18px] shrink-0 rounded" />
+                        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                          <SkeletonBlock className="h-3 w-[50%]" />
+                          <SkeletonBlock className="h-2.5 w-[30%]" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : employees.length === 0 ? (
                   <p className="py-2 text-[13px] text-ink-faint">No employees found.</p>
                 ) : filteredEmployees.length === 0 ? (

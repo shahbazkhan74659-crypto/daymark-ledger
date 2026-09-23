@@ -11,6 +11,7 @@ import { DocumentPreviewModal } from "./DocumentPreviewModal";
 import { EarningsSummaryCard } from "./EarningsSummaryCard";
 import { PersonalInfoCard } from "./PersonalInfoCard";
 import { SalaryConfigCard } from "./SalaryConfigCard";
+import { SkeletonBlock, SkeletonCircle } from "./Skeleton";
 
 function BackIcon() {
   return (
@@ -31,6 +32,73 @@ function NotFoundScreen() {
         >
           Back to home
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function WorkerDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-2.5 rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+        <SkeletonBlock className="mb-1 h-3 w-32" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between py-1">
+            <SkeletonBlock className="h-3 w-20" />
+            <SkeletonBlock className="h-3 w-24" />
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+        <div className="mb-3 flex items-center justify-between">
+          <SkeletonBlock className="h-7 w-7 rounded-lg" />
+          <SkeletonBlock className="h-3.5 w-24" />
+          <SkeletonBlock className="h-7 w-7 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: 35 }).map((_, i) => (
+            <SkeletonBlock key={i} className="aspect-square rounded-md" />
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+        <SkeletonBlock className="mb-2.5 h-3 w-36" />
+        <div className="flex items-center justify-between py-1.5">
+          <SkeletonBlock className="h-3 w-20" />
+          <SkeletonBlock className="h-6 w-16 rounded-[10px]" />
+        </div>
+        <div className="flex items-center justify-between py-1.5">
+          <SkeletonBlock className="h-3 w-24" />
+          <SkeletonBlock className="h-3 w-14" />
+        </div>
+      </div>
+
+      <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+        <SkeletonBlock className="mb-2.5 h-3 w-40" />
+        <div className="mb-2.5 grid grid-cols-2 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-page p-3">
+              <SkeletonBlock className="mb-2 h-2.5 w-16" />
+              <SkeletonBlock className="h-4 w-20" />
+            </div>
+          ))}
+        </div>
+        <SkeletonBlock className="h-11 w-full rounded-xl" />
+      </div>
+
+      <div className="rounded-[14px] bg-white p-3.5 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+        <SkeletonBlock className="mb-2.5 h-3 w-32" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between py-2.5">
+            <div className="flex flex-col gap-1.5">
+              <SkeletonBlock className="h-3.5 w-24" />
+              <SkeletonBlock className="h-2.5 w-16" />
+            </div>
+            <SkeletonBlock className="h-3.5 w-12" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -143,7 +211,7 @@ export function WorkerDetailScreen() {
           >
             <BackIcon />
           </Link>
-          {worker && (
+          {worker ? (
             <>
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -153,12 +221,19 @@ export function WorkerDetailScreen() {
               </span>
               <span className="truncate text-base font-extrabold text-ink">{worker.fullName}</span>
             </>
+          ) : (
+            loading && (
+              <>
+                <SkeletonCircle size={36} />
+                <SkeletonBlock className="h-4 w-32" />
+              </>
+            )
           )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 pt-3.5 pb-6">
           {loading ? (
-            <p className="text-sm text-ink-faint">Loading…</p>
+            <WorkerDetailSkeleton />
           ) : (
             worker && (
               <div className="flex flex-col gap-3.5">

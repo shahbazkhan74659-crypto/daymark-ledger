@@ -2,9 +2,10 @@ import fs from "node:fs";
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { computeSalaryTotals } from "../lib/salary.js";
-import { dateOnlyToString, monthDateRange, parseDateOnly, todayDateOnly } from "../lib/date.js";
+import { dateOnlyToString, monthDateRange, parseDateOnly, parseYearMonthQuery, todayDateOnly } from "../lib/date.js";
 import { requireSession } from "../middleware/requireSession.js";
 import { workerUploadDir } from "../lib/storage.js";
+import { generateNextEmployeeCode } from "../lib/employeeCode.js";
 
 export const workersRouter = Router();
 
@@ -44,7 +45,11 @@ workersRouter.get("/", requireSession, async (_req, res) => {
     const workers = await prisma.worker.findMany({
       where: { status: "ACTIVE" },
       orderBy: { fullName: "asc" },
-      include: { attendances: { where: { date: today } } },
+      select: {
+        id: true,
+        fullName: true,
+        attendances: { where: { date: today }, select: { status: true } },
+      },
     });
 
     res.json({
@@ -91,14 +96,16 @@ workersRouter.post("/", requireSession, async (req, res) => {
   }
 
   try {
+    const employeeCode = await generateNextEmployeeCode();
     const worker = await prisma.worker.create({
-      data: { fullName, designation, contact, joiningDate, perDayRate, status: "ACTIVE" },
+      data: { employeeCode, fullName, designation, contact, joiningDate, perDayRate, status: "ACTIVE" },
     });
 
     res.json({
       status: "ok",
       worker: {
         id: worker.id,
+        employeeCode: worker.employeeCode,
         fullName: worker.fullName,
         designation: worker.designation,
         contact: worker.contact,
@@ -117,6 +124,7 @@ workersRouter.get("/all", requireSession, async (_req, res) => {
   try {
     const workers = await prisma.worker.findMany({
       orderBy: { fullName: "asc" },
+      select: { id: true, fullName: true, designation: true, status: true },
     });
 
     res.json({
@@ -148,6 +156,7 @@ workersRouter.get("/:id", requireSession, async (req, res) => {
       status: "ok",
       worker: {
         id: worker.id,
+        employeeCode: worker.employeeCode,
         fullName: worker.fullName,
         designation: worker.designation,
         contact: worker.contact,
@@ -203,6 +212,7 @@ workersRouter.post("/:id", requireSession, async (req, res) => {
       status: "ok",
       worker: {
         id: updated.id,
+        employeeCode: updated.employeeCode,
         fullName: updated.fullName,
         designation: updated.designation,
         contact: updated.contact,
@@ -387,24 +397,6 @@ workersRouter.get("/:id/attendance", requireSession, async (req, res) => {
     res.status(500).json({ status: "error", message: "Failed to list attendance" });
   }
 });
-
-function parseYearMonthQuery(query: Record<string, unknown>): { year: number; month: number } | null {
-  const { year: yearParam, month: monthParam } = query;
-
-  if (yearParam === undefined && monthParam === undefined) {
-    const today = todayDateOnly();
-    return { year: today.getUTCFullYear(), month: today.getUTCMonth() + 1 };
-  }
-
-  if (yearParam === undefined || monthParam === undefined) return null;
-
-  const year = Number(yearParam);
-  const month = Number(monthParam);
-
-  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
-
-  return { year, month };
-}
 
 workersRouter.get("/:id/salary-summary", requireSession, async (req, res) => {
   const id = String(req.params.id);

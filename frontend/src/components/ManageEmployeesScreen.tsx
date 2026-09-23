@@ -4,6 +4,7 @@ import { getJson } from "../lib/api";
 import type { ManageWorker } from "../types/worker";
 import { ManageWorkerRow } from "./ManageWorkerRow";
 import { SearchBar } from "./SearchBar";
+import { SkeletonListRow } from "./Skeleton";
 
 function BackIcon() {
   return (
@@ -49,7 +50,11 @@ export function ManageEmployeesScreen() {
             Workers ({filteredWorkers.length})
           </p>
           {loading ? (
-            <p className="text-sm text-ink-faint">Loading…</p>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonListRow key={i} avatarSize={38} lines={2} trailing="badge" />
+              ))}
+            </div>
           ) : filteredWorkers.length === 0 ? (
             <p className="text-sm text-ink-faint">No workers match "{searchQuery}".</p>
           ) : (

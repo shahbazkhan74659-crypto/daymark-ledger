@@ -5,6 +5,7 @@ import { ApiError, getJson, postJson } from "../lib/api";
 import type { WorkerDetail, WorkerDocument } from "../types/worker";
 import { ManageDocumentsCard } from "./ManageDocumentsCard";
 import { ManagePersonalInfoCard } from "./ManagePersonalInfoCard";
+import { SkeletonBlock, SkeletonCircle } from "./Skeleton";
 
 function BackIcon() {
   return (
@@ -87,7 +88,7 @@ export function ManageEmployeeDetailScreen() {
           >
             <BackIcon />
           </Link>
-          {worker && (
+          {worker ? (
             <>
               <span
                 className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
@@ -109,12 +110,34 @@ export function ManageEmployeeDetailScreen() {
                 {isActive ? "Active" : "Inactive"}
               </button>
             </>
+          ) : (
+            loading && (
+              <>
+                <SkeletonCircle size={38} />
+                <SkeletonBlock className="h-4 w-32 flex-1" />
+                <SkeletonBlock className="h-5 w-14 shrink-0 rounded-full" />
+              </>
+            )
           )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 pt-3.5 pb-6">
           {loading ? (
-            <p className="text-sm text-ink-faint">Loading…</p>
+            <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-2.5 rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+                <SkeletonBlock className="mb-1 h-3 w-32" />
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between py-1">
+                    <SkeletonBlock className="h-3 w-20" />
+                    <SkeletonBlock className="h-3 w-24" />
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-2xl bg-white p-4 shadow-[0_2px_8px_rgba(28,25,23,0.12),0_0_24px_rgba(15,118,110,0.18)]">
+                <SkeletonBlock className="mb-2.5 h-3 w-28" />
+                <SkeletonBlock className="h-9 w-full rounded-xl" />
+              </div>
+            </div>
           ) : (
             worker && (
               <div className="flex flex-col gap-3.5">

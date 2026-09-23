@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AVATAR_PALETTE, getInitials, hashToIndex } from "../lib/avatar";
 import { ApiError, getJson, postJson } from "../lib/api";
 import { SearchBar } from "./SearchBar";
+import { SkeletonListRow } from "./Skeleton";
 import type { ManageWorker } from "../types/worker";
 
 function BackIcon() {
@@ -102,7 +103,11 @@ export function InactiveEmployeesScreen() {
             Inactive Workers ({filteredWorkers.length})
           </p>
           {loading ? (
-            <p className="text-sm text-ink-faint">Loading…</p>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonListRow key={i} avatarSize={38} lines={2} trailing="icons" />
+              ))}
+            </div>
           ) : filteredWorkers.length === 0 ? (
             <p className="text-sm text-ink-faint">
               {workers.length === 0

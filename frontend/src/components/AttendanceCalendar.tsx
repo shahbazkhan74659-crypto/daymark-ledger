@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildMonthCells, countMonthStatuses, MONTH_NAMES, todayDateString } from "../lib/calendar";
-import type { Advance, AttendanceRecord, AttendanceStatus } from "../types/worker";
+import type { AttendanceRecord, AttendanceStatus } from "../types/worker";
 
 const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -22,16 +22,16 @@ export function AttendanceCalendar({
   year,
   month,
   attendance,
-  advances,
+  advances = [],
   onMonthChange,
   onDayTap,
 }: {
   year: number;
   month: number;
   attendance: AttendanceRecord[];
-  advances: Advance[];
+  advances?: { date: string }[];
   onMonthChange: (year: number, month: number) => void;
-  onDayTap: (date: string) => void;
+  onDayTap?: (date: string) => void;
 }) {
   const attendanceByDate = useMemo(() => {
     const map = new Map<string, AttendanceStatus>();
@@ -104,8 +104,9 @@ export function AttendanceCalendar({
             <button
               key={cell.date}
               type="button"
-              onClick={() => onDayTap(cell.date!)}
-              className="relative flex aspect-square items-center justify-center rounded-lg text-xs font-bold"
+              disabled={!onDayTap}
+              onClick={onDayTap ? () => onDayTap(cell.date!) : undefined}
+              className="relative flex aspect-square items-center justify-center rounded-lg text-xs font-bold disabled:cursor-default"
               style={{
                 backgroundColor: tokens?.bg ?? "#ffffff",
                 color: tokens?.fg ?? "var(--color-ink-faint)",

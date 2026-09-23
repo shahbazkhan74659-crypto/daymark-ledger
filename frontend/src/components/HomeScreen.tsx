@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { ApiError, getJson, postJson } from "../lib/api";
 import type { AttendanceStatus, Worker } from "../types/worker";
 import { SearchBar } from "./SearchBar";
+import { SkeletonListRow } from "./Skeleton";
 import { WorkerRow } from "./WorkerRow";
 
 function PlusIcon() {
@@ -155,7 +156,11 @@ export function HomeScreen() {
           Workers ({filteredWorkers.length})
         </p>
         {loading ? (
-          <p className="text-sm text-ink-faint">Loading…</p>
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonListRow key={i} trailing="pills" />
+            ))}
+          </div>
         ) : filteredWorkers.length === 0 ? (
           <p className="text-sm text-ink-faint">No workers match "{searchQuery}".</p>
         ) : (
