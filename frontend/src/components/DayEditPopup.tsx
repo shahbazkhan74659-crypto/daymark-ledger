@@ -12,18 +12,21 @@ export function DayEditPopup({
   date,
   initialStatus,
   initialAdvanceAmount,
+  initialAdvanceReason,
   onCancel,
   onSave,
 }: {
   date: string;
   initialStatus: AttendanceStatus | null;
   initialAdvanceAmount: number | null;
+  initialAdvanceReason: string | null;
   onCancel: () => void;
-  onSave: (status: AttendanceStatus | null, advanceAmount: number | null) => Promise<void>;
+  onSave: (status: AttendanceStatus | null, advanceAmount: number | null, reason: string | null) => Promise<void>;
 }) {
   const [status, setStatus] = useState<AttendanceStatus | null>(initialStatus);
   const [advanceChecked, setAdvanceChecked] = useState(initialAdvanceAmount !== null);
   const [amountInput, setAmountInput] = useState(initialAdvanceAmount !== null ? String(initialAdvanceAmount) : "");
+  const [reasonInput, setReasonInput] = useState(initialAdvanceReason ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +36,12 @@ export function DayEditPopup({
       setError("Enter a valid advance amount");
       return;
     }
+    const reason = advanceChecked ? reasonInput.trim() || null : null;
 
     setSaving(true);
     setError(null);
     try {
-      await onSave(status, amount);
+      await onSave(status, amount, reason);
     } catch {
       setError("Failed to save — try again");
     } finally {
@@ -90,16 +94,25 @@ export function DayEditPopup({
         </label>
 
         {advanceChecked && (
-          <div className="flex items-center gap-1.5 rounded-[10px] bg-page px-3 py-2.5">
-            <span className="text-[15px] font-bold text-ink-faint">₹</span>
+          <>
+            <div className="flex items-center gap-1.5 rounded-[10px] bg-page px-3 py-2.5">
+              <span className="text-[15px] font-bold text-ink-faint">₹</span>
+              <input
+                type="number"
+                value={amountInput}
+                onChange={(e) => setAmountInput(e.target.value)}
+                placeholder="0"
+                className="w-full border-none bg-transparent text-[15px] font-extrabold text-ink outline-none"
+              />
+            </div>
             <input
-              type="number"
-              value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value)}
-              placeholder="0"
-              className="w-full border-none bg-transparent text-[15px] font-extrabold text-ink outline-none"
+              type="text"
+              value={reasonInput}
+              onChange={(e) => setReasonInput(e.target.value)}
+              placeholder="Reason (optional)"
+              className="w-full rounded-[10px] border-none bg-page px-3 py-2.5 text-[13px] font-semibold text-ink outline-none placeholder:text-ink-faint placeholder:font-normal"
             />
-          </div>
+          </>
         )}
 
         {error && <p className="text-xs font-semibold text-red-600">{error}</p>}

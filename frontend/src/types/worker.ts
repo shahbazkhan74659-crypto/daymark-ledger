@@ -40,6 +40,19 @@ export type AttendanceRecord = {
 export type Advance = {
   date: string;
   amount: number;
+  reason: string | null;
+};
+
+export type AdvancePagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedAdvances = {
+  advances: Advance[];
+  pagination: AdvancePagination;
 };
 
 export type SalaryTotals = {

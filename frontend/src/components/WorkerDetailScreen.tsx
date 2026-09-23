@@ -54,6 +54,7 @@ export function WorkerDetailScreen() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -96,10 +97,10 @@ export function WorkerDetailScreen() {
     }
   }
 
-  async function handleDaySave(status: AttendanceStatus | null, advanceAmount: number | null) {
+  async function handleDaySave(status: AttendanceStatus | null, advanceAmount: number | null, reason: string | null) {
     await Promise.all([
       postJson(`/api/workers/${workerId}/attendance/${selectedDate}`, { status }),
-      postJson(`/api/workers/${workerId}/advances/${selectedDate}`, { amount: advanceAmount }),
+      postJson(`/api/workers/${workerId}/advances/${selectedDate}`, { amount: advanceAmount, reason }),
     ]);
 
     setAttendance((current) => {
@@ -108,8 +109,9 @@ export function WorkerDetailScreen() {
     });
     setAdvances((current) => {
       const rest = current.filter((a) => a.date !== selectedDate);
-      return advanceAmount ? [...rest, { date: selectedDate!, amount: advanceAmount }] : rest;
+      return advanceAmount ? [...rest, { date: selectedDate!, amount: advanceAmount, reason }] : rest;
     });
+    setHistoryRefreshKey((current) => current + 1);
 
     setSelectedDate(null);
     await refreshSalarySummary();
@@ -179,7 +181,7 @@ export function WorkerDetailScreen() {
                   workerId={workerId}
                   advanceOverview={advanceOverview}
                 />
-                <AdvanceHistoryList advances={advances} />
+                <AdvanceHistoryList workerId={workerId} refreshKey={historyRefreshKey} />
               </div>
             )
           )}
@@ -190,6 +192,7 @@ export function WorkerDetailScreen() {
             date={selectedDate}
             initialStatus={selectedAttendance?.status ?? null}
             initialAdvanceAmount={selectedAdvance?.amount ?? null}
+            initialAdvanceReason={selectedAdvance?.reason ?? null}
             onCancel={() => setSelectedDate(null)}
             onSave={handleDaySave}
           />
