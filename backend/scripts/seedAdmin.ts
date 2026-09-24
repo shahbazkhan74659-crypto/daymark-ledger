@@ -5,7 +5,7 @@
 // Usage: ADMIN_USERNAME=... ADMIN_PASSWORD=... npx tsx scripts/seedAdmin.ts
 
 import "dotenv/config";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { prisma } from "../src/db.js";
 
 const BCRYPT_COST = 12;

@@ -23,3 +23,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
+.env*
+
+# Generated at build time by backend/scripts/buildVercelFunction.mjs
+# (pdfkit's font-metric files, copied alongside the bundled function).
+# api/index.js and api/package.json ARE committed (a placeholder + the CJS
+# module-type override) — only this generated subfolder is gitignored.
+/api/data/
