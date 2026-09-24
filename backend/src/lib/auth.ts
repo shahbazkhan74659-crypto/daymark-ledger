@@ -30,9 +30,9 @@ const isProduction = process.env.NODE_ENV === "production";
 
 export const sessionCookieOptions = {
   httpOnly: true,
-  // Frontend (Static Site) and backend (Web Service) live on different Render
-  // subdomains in production, so the session cookie must be sent cross-site.
-  sameSite: isProduction ? ("none" as const) : ("lax" as const),
+  // Frontend and backend are served from the same Vercel project/origin, so
+  // the session cookie is same-site in every environment.
+  sameSite: "lax" as const,
   secure: isProduction,
   path: "/",
   maxAge: SESSION_TTL_MS,

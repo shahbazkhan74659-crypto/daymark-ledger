@@ -3,9 +3,9 @@ type ApiErrorEnvelope = { status: "error"; message: string };
 
 export class ApiError extends Error {}
 
-// In production the frontend (Static Site) and backend (Web Service) are on
-// different Render subdomains, so requests need an absolute base URL. In dev
-// this stays empty and the Vite proxy handles same-origin relative paths.
+// Frontend and backend are served from the same Vercel project/origin in
+// production, and the Vite proxy handles same-origin relative paths in dev,
+// so this stays empty in both — VITE_API_BASE_URL is an override, not required.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 function resolveUrl(path: string): string {
