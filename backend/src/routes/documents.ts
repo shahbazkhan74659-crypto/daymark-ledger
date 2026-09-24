@@ -1,10 +1,14 @@
-import fs from "node:fs";
 import path from "node:path";
 import { Router } from "express";
 import multer from "multer";
 import { prisma } from "../db.js";
 import { requireSession } from "../middleware/requireSession.js";
-import { ensureWorkerUploadDir, generateStoredFileName, workerUploadDir } from "../lib/storage.js";
+import {
+  deleteDocumentObject,
+  generateStoredFileName,
+  getDocumentSignedUrl,
+  uploadDocumentObject,
+} from "../lib/storage.js";
 
 export const documentsRouter = Router();
 
@@ -13,22 +17,8 @@ const ALLOWED_MIME_TYPES = new Set(["image/jpeg"]);
 const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg"]);
 const MAX_DOCUMENTS_PER_WORKER = 2;
 
-const storage = multer.diskStorage({
-  destination: (req, _file, cb) => {
-    try {
-      const dir = ensureWorkerUploadDir(String(req.params.id));
-      cb(null, dir);
-    } catch (error) {
-      cb(error as Error, "");
-    }
-  },
-  filename: (_req, file, cb) => {
-    cb(null, generateStoredFileName(file.originalname));
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE_BYTES },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -81,12 +71,16 @@ documentsRouter.post("/:id/documents", requireSession, async (req, res) => {
       return;
     }
 
+    const storedName = generateStoredFileName(req.file.originalname);
+
     try {
+      await uploadDocumentObject(id, storedName, req.file.buffer, req.file.mimetype);
+
       const document = await prisma.workerDocument.create({
         data: {
           workerId: id,
           originalName: req.file.originalname,
-          storedName: req.file.filename,
+          storedName,
           mimeType: req.file.mimetype,
           sizeBytes: req.file.size,
         },
@@ -104,7 +98,7 @@ documentsRouter.post("/:id/documents", requireSession, async (req, res) => {
       });
     } catch (error) {
       console.error("Saving document record failed:", error);
-      fs.unlink(req.file.path, () => {});
+      deleteDocumentObject(id, storedName).catch(() => {});
       res.status(500).json({ status: "error", message: "Failed to save document record" });
     }
   });
@@ -152,21 +146,10 @@ documentsRouter.get("/:id/documents/:documentId/download", requireSession, async
       return;
     }
 
-    const filePath = path.join(workerUploadDir(id), document.storedName);
-    if (!fs.existsSync(filePath)) {
-      res.status(404).json({ status: "error", message: "Document file not found on disk" });
-      return;
-    }
-
-    res.setHeader("Content-Type", document.mimeType);
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${document.originalName.replace(/"/g, "")}"`,
-    );
-    fs.createReadStream(filePath).pipe(res);
+    res.redirect(getDocumentSignedUrl(id, document.storedName));
   } catch (error) {
     console.error("Downloading document failed:", error);
-    res.status(500).json({ status: "error", message: "Failed to download document" });
+    res.status(404).json({ status: "error", message: "Document file not found in storage" });
   }
 });
 
@@ -181,16 +164,12 @@ documentsRouter.post("/:id/documents/:documentId/remove", requireSession, async 
       return;
     }
 
-    const filePath = path.join(workerUploadDir(id), document.storedName);
     await prisma.workerDocument.delete({ where: { id: documentId } });
 
     try {
-      await fs.promises.unlink(filePath);
+      await deleteDocumentObject(id, document.storedName);
     } catch (unlinkError) {
-      const err = unlinkError as NodeJS.ErrnoException;
-      if (err.code !== "ENOENT") {
-        console.error("Removing document file from disk failed:", err);
-      }
+      console.error("Removing document from storage failed:", unlinkError);
     }
 
     res.json({ status: "ok", document: { id: documentId } });

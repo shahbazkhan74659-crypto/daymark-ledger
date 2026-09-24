@@ -2,14 +2,21 @@
 
 ## Active
 
-None.
+Deploying to production (Render + Neon), in progress 2026-09-24 — code is deploy-ready, remaining steps require the owner to create/configure the actual external accounts. **Owner decided 2026-09-24: the live app launches empty — the admin (owner's father) will create employees himself from scratch. No data migration from local `daymark_ledger_dev` to Neon.**
+
+- [x] Object storage: Cloudflare R2 abandoned (requires a payment card to activate even the free tier) in favor of **Cloudinary** — owner's existing account, reused via a dedicated `daymark-ledger` API key created through Claude-in-Chrome browser automation with the owner approving the pivot/verification code/activation. `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set in `backend/.env` for local dev; upload/signed-download/delete all verified working via throwaway scripts (deleted after use). Still need the same three values set in Render's dashboard at deploy time.
+- [x] Create a Neon Postgres project; get its connection string. (owner)
+- [x] Run `prisma migrate deploy` against Neon — schema applied successfully (8 migrations), database confirmed empty, no data restore performed per the no-migration decision.
+- [ ] Run `backend/scripts/seedAdmin.ts` against Neon (with real production `ADMIN_USERNAME`/`ADMIN_PASSWORD`) once the backend is deployed and `DATABASE_URL` is live — **do not** run `prisma:seed`, it also creates 18 fake sample workers.
+- [ ] Push this repo to GitHub (needed for Render to deploy from), create the Render Blueprint from `render.yaml` at the repo root, fill in the `sync: false` env vars (`CORS_ORIGIN`, `DATABASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `VITE_API_BASE_URL`) in the Render dashboard.
+- [ ] Verify end-to-end against the live deployed URLs: login, a full worker round trip, document upload/download, a report generation.
 
 ## Next
 
 Open items carried over from the discussion phase, not yet decided or scoped into a phase:
 
 - ~~Choose a PaaS hosting platform for the backend/database~~ — resolved 2026-09-22: **Render** (Web Service for the Express backend, Static Site for the built frontend) + **Neon** (managed Postgres), free tier, matching the owner's already-proven Render+Neon pattern from a separate project; see `DECISIONS.md`'s "Production hosting platform" entry.
-- Resolve document-storage persistence on Render's free tier: `backend/uploads/` (local-filesystem document storage, see `DECISIONS.md`'s storage decision) is wiped on every Render free-tier redeploy/restart, since free-tier Render web services have no persistent disk. The owner explicitly chose to accept the free tier as-is for now (see `DECISIONS.md`'s hosting-platform entry) rather than pay for Render's persistent-disk add-on — before real production use, either upgrade to a paid Render plan with that add-on, or swap `backend/src/lib/storage.ts` for a cloud object-storage provider.
+- ~~Resolve document-storage persistence on Render's free tier~~ — resolved 2026-09-24: swapped `backend/src/lib/storage.ts` from local disk to Cloudinary object storage (after an abandoned first attempt at Cloudflare R2 — see `DECISIONS.md`'s two storage-decision entries). The remaining work is purely the live account/deploy steps tracked above under Active.
 - Itemize the exact fields for a worker's "Personal info" (e.g. address, ID number, emergency contact — not yet itemized).
 - Decide which document *types*/categories to support for worker document uploads (ID proofs, contracts, etc. — not yet itemized). Phase 15b's file-*format* allow-list (pdf/jpg/jpeg/png) is a separate technical upload-validation detail and does not resolve this — `WorkerDocument` has no category/label field yet.
 - ~~Decide Reporting's actual scope~~ — resolved 2026-09-21: the owner directed building the Reporting frontend to exactly match the UI prototype (format-choice screen + config screen with Date Range and a 10-field checklist, mock Save with no persistence); see `PHASES.md`'s Phase 17 entry. ~~Phase 18 (Reporting Panel Backend) remains open~~ — resolved 2026-09-21, see Completed below.

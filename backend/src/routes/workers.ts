@@ -1,10 +1,9 @@
-import fs from "node:fs";
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { computeSalaryTotals } from "../lib/salary.js";
 import { dateOnlyToString, monthDateRange, parseDateOnly, parseYearMonthQuery, todayDateOnly } from "../lib/date.js";
 import { requireSession } from "../middleware/requireSession.js";
-import { workerUploadDir } from "../lib/storage.js";
+import { deleteAllWorkerDocumentObjects } from "../lib/storage.js";
 import { generateNextEmployeeCode } from "../lib/employeeCode.js";
 
 export const workersRouter = Router();
@@ -274,11 +273,11 @@ workersRouter.post("/:id/delete", requireSession, async (req, res) => {
     }
 
     // Cascades Attendance/Advance/WorkerDocument rows via the schema's onDelete: Cascade —
-    // the uploaded files themselves live on disk and aren't touched by that cascade.
+    // the uploaded files themselves live in object storage and aren't touched by that cascade.
     await prisma.worker.delete({ where: { id } });
 
-    fs.rm(workerUploadDir(id), { recursive: true, force: true }, (err) => {
-      if (err) console.error(`Failed to remove upload directory for deleted worker ${id}:`, err);
+    deleteAllWorkerDocumentObjects(id).catch((err) => {
+      console.error(`Failed to remove stored documents for deleted worker ${id}:`, err);
     });
 
     res.json({ status: "ok" });

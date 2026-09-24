@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ApiError, postForm, postJson } from "../lib/api";
+import { apiUrl, ApiError, postForm, postJson } from "../lib/api";
 import { validateDocumentBatch } from "../lib/documentRules";
 import { formatFileSize } from "../lib/format";
 import type { WorkerDocument } from "../types/worker";
@@ -67,7 +67,7 @@ export function ManageDocumentsCard({
           documents.map((doc) => (
             <div key={doc.id} className="flex items-center gap-2 rounded-[10px] bg-page px-2.5 py-2">
               <a
-                href={`/api/workers/${workerId}/documents/${doc.id}/download`}
+                href={apiUrl(`/api/workers/${workerId}/documents/${doc.id}/download`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex min-w-0 flex-1 items-center gap-2"

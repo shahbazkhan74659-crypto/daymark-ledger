@@ -1,3 +1,4 @@
+import { apiUrl } from "../lib/api";
 import type { WorkerDocument } from "../types/worker";
 import { PdfViewer } from "./PdfViewer";
 
@@ -18,7 +19,7 @@ export function DocumentPreviewModal({
   document: WorkerDocument;
   onClose: () => void;
 }) {
-  const fileUrl = `/api/workers/${workerId}/documents/${document.id}/download`;
+  const fileUrl = apiUrl(`/api/workers/${workerId}/documents/${document.id}/download`);
   const isImage = document.mimeType.startsWith("image/");
 
   return (
